@@ -2,7 +2,7 @@
   "name": "HR System",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/App/Main.js",
+  "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
