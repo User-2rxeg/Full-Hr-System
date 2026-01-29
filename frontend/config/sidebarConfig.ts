@@ -64,6 +64,10 @@ const SELF_SERVICE_SECTION: NavSection = {
       label: 'My Performance',
       href: '/portal/my-performance',
       icon: 'trending-up',
+      children: [
+        { label: 'Overview', href: '/portal/my-performance', icon: 'layout' },
+        { label: 'History', href: '/portal/my-performance/history', icon: 'file-text' },
+      ],
     },
     {
       label: 'My Payslips',
@@ -296,7 +300,9 @@ const HR_MANAGER_SECTIONS: NavSection[] = [
           { label: 'Dashboard', href: '/dashboard/hr-manager/performance-dashboard', icon: 'layout' },
           { label: 'Templates', href: '/dashboard/hr-manager/performance-templates', icon: 'file' },
           { label: 'Cycles', href: '/dashboard/hr-manager/performance-cycles', icon: 'calendar' },
+          { label: 'Reports', href: '/dashboard/hr-manager/performance-reports', icon: 'bar-chart' },
           { label: 'Disputes', href: '/dashboard/hr-manager/disputes', icon: 'alert-circle' },
+          { label: 'Strategic Insights', href: '/dashboard/hr-manager/performance-analytics', icon: 'pie-chart' },
         ],
       },
       {

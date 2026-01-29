@@ -85,17 +85,25 @@ interface DisputeStats {
 }
 
 const statusColors: Record<string, string> = {
-    PENDING: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    UNDER_REVIEW: 'bg-blue-100 text-blue-700 border-blue-200',
-    RESOLVED: 'bg-green-100 text-green-700 border-green-200',
-    REJECTED: 'bg-red-100 text-red-700 border-red-200',
+    PENDING: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    UNDER_REVIEW: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    RESOLVED: 'bg-green-500/10 text-green-600 border-green-500/20',
+    REJECTED: 'bg-destructive/10 text-destructive border-destructive/20',
 };
 
-const statusIcons: Record<string, string> = {
-    PENDING: '⏳',
-    UNDER_REVIEW: '🔍',
-    RESOLVED: '✅',
-    REJECTED: '❌',
+const StatusIcon = ({ status, className }: { status: string; className?: string }) => {
+    switch (status) {
+        case 'PENDING':
+            return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+        case 'UNDER_REVIEW':
+            return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+        case 'RESOLVED':
+            return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" /></svg>;
+        case 'REJECTED':
+            return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
+        default:
+            return null;
+    }
 };
 
 const resolutionTypes = [
@@ -314,58 +322,58 @@ export default function DisputesPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="bg-white border border-slate-200 rounded-xl p-4">
+                <div className="bg-card border border-border rounded-xl p-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                            📊
+                        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                            <p className="text-sm text-slate-500">Total</p>
+                            <p className="text-2xl font-black text-foreground">{stats.total}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-4">
+                <div className="bg-card border border-border rounded-xl p-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                            ⏳
+                        <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                            <StatusIcon status="PENDING" className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                            <p className="text-sm text-slate-500">Pending</p>
+                            <p className="text-2xl font-black text-amber-600">{stats.pending}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pending</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-4">
+                <div className="bg-card border border-border rounded-xl p-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            🔍
+                        <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                            <StatusIcon status="UNDER_REVIEW" className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-blue-600">{stats.underReview}</p>
-                            <p className="text-sm text-slate-500">Under Review</p>
+                            <p className="text-2xl font-black text-blue-600">{stats.underReview}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">In Review</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-4">
+                <div className="bg-card border border-border rounded-xl p-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            ✅
+                        <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                            <StatusIcon status="RESOLVED" className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-green-600">{stats.resolved}</p>
-                            <p className="text-sm text-slate-500">Resolved</p>
+                            <p className="text-2xl font-black text-green-600">{stats.resolved}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Resolved</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-4">
+                <div className="bg-card border border-border rounded-xl p-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                            ❌
+                        <div className="w-10 h-10 bg-destructive/10 rounded-lg flex items-center justify-center">
+                            <StatusIcon status="REJECTED" className="w-5 h-5 text-destructive" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-                            <p className="text-sm text-slate-500">Rejected</p>
+                            <p className="text-2xl font-black text-destructive">{stats.rejected}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rejected</p>
                         </div>
                     </div>
                 </div>
@@ -388,19 +396,19 @@ export default function DisputesPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="pending" className="flex items-center gap-2">
-                        <span className="hidden sm:inline">⏳</span> Pending
+                        <StatusIcon status="PENDING" className="w-4 h-4 hidden sm:inline" /> Pending
                         {stats.pending > 0 && (
-                            <Badge className="bg-yellow-500 text-white ml-1">{stats.pending}</Badge>
+                            <Badge className="bg-amber-500 text-white ml-2">{stats.pending}</Badge>
                         )}
                     </TabsTrigger>
                     <TabsTrigger value="under_review" className="flex items-center gap-2">
-                        <span className="hidden sm:inline">🔍</span> Under Review
+                        <StatusIcon status="UNDER_REVIEW" className="w-4 h-4 hidden sm:inline" /> In Review
                         {stats.underReview > 0 && (
-                            <Badge className="bg-blue-500 text-white ml-1">{stats.underReview}</Badge>
+                            <Badge className="bg-blue-500 text-white ml-2">{stats.underReview}</Badge>
                         )}
                     </TabsTrigger>
                     <TabsTrigger value="resolved" className="flex items-center gap-2">
-                        <span className="hidden sm:inline">✅</span> Resolved
+                        <StatusIcon status="RESOLVED" className="w-4 h-4 hidden sm:inline" /> Resolved
                     </TabsTrigger>
                 </TabsList>
 
@@ -426,7 +434,7 @@ export default function DisputesPage() {
                                                         {dispute.employeeId?.firstName} {dispute.employeeId?.lastName}
                                                     </h3>
                                                     <Badge className={statusColors[dispute.status]}>
-                                                        {statusIcons[dispute.status]} {dispute.status.replace('_', ' ')}
+                                                        {dispute.status.replace('_', ' ')}
                                                     </Badge>
                                                 </div>
 
@@ -537,7 +545,7 @@ export default function DisputesPage() {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <span className="text-2xl">{statusIcons[selectedDispute?.status || 'PENDING']}</span>
+                            <StatusIcon status={selectedDispute?.status || 'PENDING'} className="w-6 h-6" />
                             Dispute Details
                         </DialogTitle>
                         <DialogDescription>
@@ -569,8 +577,9 @@ export default function DisputesPage() {
                             <div>
                                 <Label className="text-sm text-slate-500">Status</Label>
                                 <div className="mt-1">
-                                    <Badge className={`${statusColors[selectedDispute.status]} text-sm px-3 py-1`}>
-                                        {statusIcons[selectedDispute.status]} {selectedDispute.status.replace('_', ' ')}
+                                    <Badge className={`${statusColors[selectedDispute.status]} text-sm px-3 py-1 flex items-center gap-2 w-fit`}>
+                                        <StatusIcon status={selectedDispute.status} className="w-4 h-4" />
+                                        {selectedDispute.status.replace('_', ' ')}
                                     </Badge>
                                 </div>
                             </div>

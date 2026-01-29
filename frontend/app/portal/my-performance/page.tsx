@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { performanceService } from '@/app/services/performance';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface Appraisal {
   _id: string;
@@ -46,13 +50,10 @@ export default function MyPerformancePage() {
       setLoading(true);
       setError(null);
 
-      // Fetch appraisal history
       const appraisalRes = await performanceService.getAppraisalHistory?.() || { data: [] };
       const rawData = Array.isArray(appraisalRes.data) ? appraisalRes.data : (Array.isArray(appraisalRes) ? appraisalRes : []);
 
-      // Mapping backend AppraisalRecord to frontend Appraisal interface
       const mappedAppraisals: Appraisal[] = rawData.map((item: any) => {
-        // Map backend statuses to frontend statuses
         let mappedStatus: Appraisal['status'] = 'PENDING';
         if (item.status === 'HR_PUBLISHED') mappedStatus = 'COMPLETED';
         else if (item.status === 'ARCHIVED') mappedStatus = 'COMPLETED';
@@ -67,11 +68,9 @@ export default function MyPerformancePage() {
           status: mappedStatus,
           overallRating: item.totalScore || 0,
           feedback: item.managerSummary || '',
-          // Handle strengths as string (from backend) or array
           strengths: typeof item.strengths === 'string'
             ? item.strengths.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
             : (Array.isArray(item.strengths) ? item.strengths : []),
-          // Handle improvementAreas (backend) mapped to areasForImprovement (frontend)
           areasForImprovement: typeof item.improvementAreas === 'string'
             ? item.improvementAreas.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
             : (Array.isArray(item.improvementAreas) ? item.improvementAreas : []),
@@ -86,7 +85,6 @@ export default function MyPerformancePage() {
         setLatestAppraisal(mappedAppraisals[0]);
       }
 
-      // Fetch goals
       const goalsRes = await performanceService.getMyGoals?.() || { data: [] };
       const rawGoals = Array.isArray(goalsRes.data) ? goalsRes.data : (Array.isArray(goalsRes) ? goalsRes : []);
       setGoals(rawGoals);
@@ -101,317 +99,220 @@ export default function MyPerformancePage() {
 
   const getRatingColor = (rating?: number) => {
     if (!rating) return 'bg-muted text-muted-foreground';
-    if (rating >= 4.5) return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
-    if (rating >= 3.5) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
-    if (rating >= 2.5) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
-    return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+    if (rating >= 4.5) return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
+    if (rating >= 3.5) return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+    if (rating >= 2.5) return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+    return 'bg-destructive/10 text-destructive border-destructive/20';
   };
 
-  const getRatingLabel = (rating?: number) => {
-    if (!rating) return 'Not Rated';
-    if (rating >= 4.5) return 'Exceptional';
-    if (rating >= 3.5) return 'Exceeds Expectations';
-    if (rating >= 2.5) return 'Meets Expectations';
-    if (rating >= 1.5) return 'Needs Improvement';
-    return 'Unsatisfactory';
-  };
-
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return { bg: 'bg-muted', text: 'text-muted-foreground', label: 'Pending' };
-      case 'IN_PROGRESS':
-        return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-400', label: 'In Progress' };
-      case 'COMPLETED':
-        return { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-400', label: 'Completed' };
-      case 'DISPUTED':
-        return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-400', label: 'Disputed' };
-      default:
-        return { bg: 'bg-muted', text: 'text-muted-foreground', label: status };
-    }
-  };
-
-  const getGoalStatusConfig = (status: string) => {
-    switch (status) {
-      case 'NOT_STARTED':
-        return { bg: 'bg-muted', text: 'text-muted-foreground', label: 'Not Started' };
-      case 'IN_PROGRESS':
-        return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'In Progress' };
-      case 'COMPLETED':
-        return { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Completed' };
-      case 'CANCELLED':
-        return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', label: 'Cancelled' };
-      default:
-        return { bg: 'bg-muted', text: 'text-muted-foreground', label: status };
-    }
+  const statusConfigs: Record<string, string> = {
+    PENDING: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    IN_PROGRESS: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    COMPLETED: 'bg-green-500/10 text-green-600 border-green-500/20',
+    DISPUTED: 'bg-destructive/10 text-destructive border-destructive/20',
   };
 
   if (loading) {
     return (
-      <div className="p-6 lg:p-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-48 bg-card rounded-xl border border-border"></div>
-            <div className="h-64 bg-card rounded-xl border border-border"></div>
-          </div>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your performance metrics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-semibold text-foreground">My Performance</h1>
-            <p className="text-muted-foreground mt-1">View your appraisals, ratings, and development goals (REQ-OD-01)</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <Link href="/portal" className="hover:text-foreground">Employee Portal</Link>
+            <span>/</span>
+            <span className="text-foreground">My Performance</span>
           </div>
-          <Link
-            href="/portal/my-performance/history"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted transition-colors"
-          >
-            View History
-          </Link>
+          <h1 className="text-2xl font-bold text-foreground">Performance Overview</h1>
+          <p className="text-muted-foreground mt-1">Track your growth, appraisals, and development milestones</p>
         </div>
+        <Button variant="outline" asChild>
+          <Link href="/portal/my-performance/history">
+            Investment History
+          </Link>
+        </Button>
+      </div>
 
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <p className="text-sm font-medium text-destructive">{error}</p>
+        </div>
+      )}
 
-        {/* Latest Appraisal Card */}
-        {latestAppraisal ? (
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <div className="p-6">
-              <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-                {/* Rating Circle */}
-                <div className="flex-shrink-0">
-                  <div className={`w-32 h-32 rounded-full flex flex-col items-center justify-center ${getRatingColor(latestAppraisal.overallRating)}`}>
-                    <span className="text-4xl font-bold">
-                      {latestAppraisal.overallRating?.toFixed(1) || '--'}
-                    </span>
-                    <span className="text-sm font-medium mt-1">out of 5.0</span>
-                  </div>
+      {/* Hero Section - Latest Appraisal */}
+      {latestAppraisal ? (
+        <div className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+          <div className="p-8">
+            <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start text-center lg:text-left">
+              <div className="relative shrink-0">
+                <div className={`w-40 h-40 rounded-full border-[6px] border-background flex flex-col items-center justify-center shadow-xl ${getRatingColor(latestAppraisal.overallRating)}`}>
+                  <span className="text-5xl font-black">{latestAppraisal.overallRating?.toFixed(1) || '--'}</span>
+                  <span className="text-[10px] uppercase font-black opacity-60 tracking-widest mt-1">Global Score</span>
                 </div>
+              </div>
 
-                {/* Details */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">{latestAppraisal.cycleName}</h2>
-                      <p className="text-muted-foreground mt-1">{latestAppraisal.templateName}</p>
-                    </div>
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusConfig(latestAppraisal.status).bg} ${getStatusConfig(latestAppraisal.status).text}`}>
-                      {getStatusConfig(latestAppraisal.status).label}
-                    </span>
+              <div className="flex-1 space-y-4">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                  <h2 className="text-3xl font-black text-foreground tracking-tight">{latestAppraisal.cycleName}</h2>
+                  <Badge variant="outline" className={`px-4 py-1 font-black ${statusConfigs[latestAppraisal.status]}`}>
+                    {latestAppraisal.status}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-lg font-medium">{latestAppraisal.templateName}</p>
+
+                {latestAppraisal.feedback && (
+                  <div className="p-6 bg-muted/30 border-l-4 border-primary rounded-r-xl italic text-foreground leading-relaxed">
+                    "{latestAppraisal.feedback}"
                   </div>
+                )}
 
-                  <div className="mt-4">
-                    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getRatingColor(latestAppraisal.overallRating)}`}>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                      <span className="font-medium">{getRatingLabel(latestAppraisal.overallRating)}</span>
-                    </span>
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 pt-2">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{latestAppraisal.reviewedBy}</span>
                   </div>
-
-                  {latestAppraisal.feedback && (
-                    <div className="mt-4 p-4 bg-muted rounded-lg">
-                      <p className="text-sm font-medium text-foreground mb-2">Manager Feedback</p>
-                      <p className="text-muted-foreground">{latestAppraisal.feedback}</p>
-                    </div>
-                  )}
-
                   {latestAppraisal.completedAt && (
-                    <p className="text-sm text-muted-foreground mt-4">
-                      Completed on {new Date(latestAppraisal.completedAt).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Strengths and Improvements */}
-            {(latestAppraisal.strengths?.length || latestAppraisal.areasForImprovement?.length) && (
-              <div className="border-t border-border p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {latestAppraisal.strengths && latestAppraisal.strengths.length > 0 && (
-                    <div>
-                      <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Strengths
-                      </h3>
-                      <ul className="space-y-2">
-                        {latestAppraisal.strengths.map((strength, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></span>
-                            {strength}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {latestAppraisal.areasForImprovement && latestAppraisal.areasForImprovement.length > 0 && (
-                    <div>
-                      <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        Areas for Improvement
-                      </h3>
-                      <ul className="space-y-2">
-                        {latestAppraisal.areasForImprovement.map((area, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-1.5 flex-shrink-0"></span>
-                            {area}
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{new Date(latestAppraisal.completedAt).toLocaleDateString()}</span>
                     </div>
                   )}
                 </div>
               </div>
-            )}
-
-            {/* Actions */}
-            {latestAppraisal.status === 'COMPLETED' && (
-              <div className="border-t border-border px-6 py-4 bg-muted/50 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Have concerns about your rating?
-                </p>
-                <Link
-                  href={`/portal/my-performance/dispute?appraisalId=${latestAppraisal._id}`}
-                  className="text-sm font-medium text-primary hover:text-primary/80"
-                >
-                  Raise a Dispute
-                </Link>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-card rounded-xl border border-border p-12 text-center">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
             </div>
-            <h3 className="font-medium text-foreground">No Appraisals Yet</h3>
-            <p className="text-muted-foreground mt-1">Your performance appraisals will appear here once completed.</p>
-          </div>
-        )}
-
-        {/* Goals Section */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="font-semibold text-foreground">Development Goals</h2>
           </div>
 
-          {goals.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+          {(latestAppraisal.strengths?.length || latestAppraisal.areasForImprovement?.length) && (
+            <div className="bg-muted/30 border-t border-border p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-green-600 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  Demonstrated Strengths
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {latestAppraisal.strengths?.map((s, i) => (
+                    <Badge key={i} variant="secondary" className="bg-green-500/5 text-green-700 border-green-500/10 px-3 py-1 text-xs">
+                      {s}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-              <p className="text-muted-foreground">No development goals assigned</p>
+              <div className="space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-amber-600 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  Evolution Opportunities
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {latestAppraisal.areasForImprovement?.map((a, i) => (
+                    <Badge key={i} variant="secondary" className="bg-amber-500/5 text-amber-700 border-amber-500/10 px-3 py-1 text-xs">
+                      {a}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {goals.slice(0, 5).map((goal) => {
-                const statusConfig = getGoalStatusConfig(goal.status);
-                return (
-                  <div key={goal._id} className="p-5 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-medium text-foreground">{goal.title}</h3>
-                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusConfig.bg} ${statusConfig.text}`}>
-                            {statusConfig.label}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{goal.description}</p>
-                        <div className="flex items-center gap-4 mt-3">
-                          <div className="flex-1 max-w-xs">
-                            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                              <span>Progress</span>
-                              <span>{goal.progress}%</span>
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-2">
-                              <div
-                                className="bg-primary h-2 rounded-full transition-all"
-                                style={{ width: `${goal.progress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Due: {new Date(goal.targetDate).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          )}
+
+          {latestAppraisal.status === 'COMPLETED' && (
+            <div className="bg-primary/5 px-8 py-4 flex items-center justify-between border-t border-primary/10">
+              <span className="text-xs font-semibold text-primary uppercase tracking-widest">Formal appraisal published</span>
+              <Link href={`/portal/my-performance/dispute?appraisalId=${latestAppraisal._id}`} className="text-xs font-black uppercase tracking-widest text-primary hover:underline underline-offset-4">
+                Raise Inquiry
+              </Link>
             </div>
           )}
         </div>
+      ) : (
+        <div className="text-center py-24 bg-card border border-border rounded-xl border-dashed">
+          <svg className="w-16 h-16 text-muted-foreground opacity-20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-lg font-bold text-foreground">No Appraisal Data</h3>
+          <p className="text-muted-foreground max-w-xs mx-auto">Your performance reviews will be systematically populated here following the appraisal cycle.</p>
+        </div>
+      )}
 
-        {/* Appraisal History Summary */}
-        {appraisals.length > 1 && (
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="font-semibold text-foreground">Appraisal History</h2>
-              <Link
-                href="/portal/my-performance/history"
-                className="text-sm font-medium text-primary hover:text-primary/80"
-              >
-                View All
-              </Link>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center gap-4 overflow-x-auto pb-2">
-                {appraisals.slice(0, 5).map((appraisal, idx) => (
-                  <div
-                    key={appraisal._id}
-                    className={`flex-shrink-0 w-32 p-4 rounded-lg border ${idx === 0 ? 'border-primary/50 bg-primary/10' : 'border-border bg-muted/50'
-                      }`}
-                  >
-                    <div className={`text-2xl font-bold ${idx === 0 ? 'text-primary' : 'text-foreground'
-                      }`}>
-                      {appraisal.overallRating?.toFixed(1) || '--'}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 truncate">{appraisal.cycleName}</p>
-                    <p className="text-xs text-muted-foreground/70">
-                      {new Date(appraisal.createdAt).getFullYear()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* Grid for Goals and History */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Development Goals */}
+        <div className="bg-card border border-border rounded-xl flex flex-col h-full shadow-sm hover:shadow-md transition-shadow">
+          <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+            <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Strategic Objectives</h3>
+            <Badge variant="outline" className="rounded-full bg-primary/5">{goals.length}</Badge>
           </div>
-        )}
+          <div className="flex-1 p-6 space-y-6">
+            {goals.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center space-y-3 opacity-50">
+                <svg className="w-10 h-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <p className="text-xs font-bold uppercase tracking-widest">Target-free zone</p>
+              </div>
+            ) : (
+              goals.slice(0, 4).map((goal) => (
+                <div key={goal._id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-foreground truncate max-w-[70%]">{goal.title}</span>
+                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-tighter">Due {new Date(goal.targetDate).toLocaleDateString()}</span>
+                  </div>
+                  <Progress value={goal.progress} className="h-1.5" />
+                  <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-widest opacity-60">
+                    <span>{goal.status.replace('_', ' ')}</span>
+                    <span>{goal.progress}% Completion</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
-        {/* Help Card */}
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-100 dark:border-purple-800 p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-card rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-              <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+        {/* Historical trajectory */}
+        <div className="bg-card border border-border rounded-xl flex flex-col h-full shadow-sm">
+          <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+            <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Growth Trajectory</h3>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {appraisals.slice(0, 4).map((app, i) => (
+                <div key={i} className="bg-muted/50 rounded-xl p-4 border border-border flex flex-col items-center justify-center space-y-2 text-center group hover:bg-primary/5 hover:border-primary/20 transition-all">
+                  <span className="text-2xl font-black text-foreground group-hover:text-primary">{app.overallRating?.toFixed(1) || '--'}</span>
+                  <div className="space-y-0.5">
+                    <div className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground truncate w-full">{app.cycleName}</div>
+                    <div className="text-[10px] font-medium text-slate-400">{new Date(app.createdAt).getFullYear()}</div>
+                  </div>
+                </div>
+              ))}
+              {appraisals.length === 0 && Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-muted/30 rounded-xl p-4 border border-border border-dashed flex flex-col items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-slate-200/50"></div>
+                </div>
+              ))}
             </div>
-            <div>
-              <h3 className="font-semibold text-foreground">Performance Review Process</h3>
-              <p className="text-muted-foreground mt-1 text-sm">
-                Your manager will conduct periodic performance reviews. If you have concerns about your rating,
-                you can raise a dispute within 7 days of receiving your appraisal. HR will review and resolve disputes.
+
+            <div className="mt-8 p-6 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl text-white shadow-xl relative overflow-hidden">
+              <div className="absolute right-[-20px] top-[-20px] w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
+              <h4 className="text-xs font-black uppercase tracking-[0.3em] opacity-60 mb-2">Policy reminder</h4>
+              <p className="text-sm font-medium leading-relaxed mb-4">
+                Your professional evolution is a collective journey. Use these data points as catalysts for your next 1-on-1 performance dialogue.
               </p>
+              <Link href="/portal/learning" className="text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-80 flex items-center gap-2">
+                Explore Development Resources
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </Link>
             </div>
           </div>
         </div>
@@ -419,4 +320,3 @@ export default function MyPerformancePage() {
     </div>
   );
 }
-

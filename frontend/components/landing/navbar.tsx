@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Menu, Zap, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/context/AuthContext'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -31,6 +32,7 @@ const navigationItems = [
 
 export function LandingNavbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { isAuthenticated, getDashboardRoute } = useAuth()
   const pathname = usePathname()
 
   // Handle smooth scrolling for hash links
@@ -99,8 +101,8 @@ export function LandingNavbar() {
                   </a>
                 ) : (
                   <NavigationMenuLink asChild>
-                    <Link 
-                      href={item.href} 
+                    <Link
+                      href={item.href}
                       className={`${navigationMenuTriggerStyle()} ${item.highlight ? 'text-primary font-semibold' : ''}`}
                     >
                       {item.name}
@@ -120,12 +122,20 @@ export function LandingNavbar() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" asChild>
-            <Link href="/login">Log in</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/dashboard">Get Started</Link>
-          </Button>
+          {isAuthenticated ? (
+            <Button asChild>
+              <Link href={getDashboardRoute()}>Dashboard</Link>
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" asChild>
+                <Link href="/login">Log in</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/register">Get Started</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu */}
@@ -178,12 +188,20 @@ export function LandingNavbar() {
                   )
                 ))}
                 <div className="border-t pt-4 mt-2 flex flex-col gap-2">
-                  <Button variant="outline" className="w-full justify-start" asChild>
-                    <Link href="/login">Log in</Link>
-                  </Button>
-                  <Button className="w-full justify-start" asChild>
-                    <Link href="/dashboard">Get Started</Link>
-                  </Button>
+                  {isAuthenticated ? (
+                    <Button className="w-full justify-start" asChild onClick={() => setIsOpen(false)}>
+                      <Link href={getDashboardRoute()}>Return to Dashboard</Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="outline" className="w-full justify-start" asChild>
+                        <Link href="/login">Log in</Link>
+                      </Button>
+                      <Button className="w-full justify-start" asChild>
+                        <Link href="/register">Get Started</Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>
