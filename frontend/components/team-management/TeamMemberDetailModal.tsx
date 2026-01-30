@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { TeamMember } from './TeamMemberCard';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { analyticsService, AttritionRiskResponse } from '@/app/services/analytics';
@@ -249,6 +250,20 @@ export default function TeamMemberDetailModal({ member, isOpen, onClose }: TeamM
                   Attrition risk data unavailable for this member
                 </div>
               )}
+
+              {/* Performance Action */}
+              <div className="pt-2">
+                <Link
+                  href="/dashboard/department-head/performance"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
+                >
+                  <BrainCircuit className="w-4 h-4" />
+                  Initiate Performance Review
+                </Link>
+                <p className="text-[10px] text-center text-muted-foreground mt-2 uppercase tracking-widest font-bold">
+                  Direct action for Supervisor (BR 41b)
+                </p>
+              </div>
             </div>
           </div>
 

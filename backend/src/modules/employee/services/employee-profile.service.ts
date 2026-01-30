@@ -13,7 +13,7 @@ import { CreateCorrectionRequestDto } from '../dto\'s/create-correction-request.
 import { AdminUpdateProfileDto } from '../dto\'s/admin-update-profile.dto';
 import { AdminAssignRoleDto } from '../dto\'s/admin-assign-role.dto';
 import { SearchEmployeesDto, PaginatedResult, PaginationQueryDto } from '../dto\'s/search-employees.dto';
-import { EmployeeStatus, ProfileChangeStatus } from '../enums/employee-profile.enums';
+import { EmployeeStatus, ProfileChangeStatus, SystemRole } from '../enums/employee-profile.enums';
 import { AddEmergencyContactDto, UpdateEmergencyContactDto } from '../dto\'s/emergency-contact.dto';
 import { AddQualificationDto, UpdateQualificationDto } from '../dto\'s/qualification.dto';
 import { SharedEmployeeService } from '../../integration/services/shared-employee.service';
@@ -81,7 +81,7 @@ export class EmployeeProfileService {
     private validateContactInfo(profile: { mobilePhone?: string; homePhone?: string; personalEmail?: string; workEmail?: string }): void {
         const hasPhone = !!(profile.mobilePhone || profile.homePhone);
         const hasEmail = !!(profile.personalEmail || profile.workEmail);
-        
+
         if (!hasPhone && !hasEmail) {
             throw new BadRequestException('At least one contact method is required: phone (mobile or home) or email (personal or work)');
         }
@@ -108,7 +108,7 @@ export class EmployeeProfileService {
         if (!primaryDepartmentId) {
             throw new BadRequestException('Primary department ID is required');
         }
-        
+
         // Supervisor is required unless this is a top-level position
         if (!isTopLevel && !supervisorPositionId) {
             throw new BadRequestException('Supervisor position ID is required (except for top-level positions)');
@@ -359,7 +359,7 @@ export class EmployeeProfileService {
         return savedRequest;
     }
 
-    async getTeamProfiles(managerId: string): Promise<EmployeeProfile[]> {
+    async getTeamProfiles(managerId: string, roles: string[] = []): Promise<EmployeeProfile[]> {
         this.validateObjectId(managerId, 'managerId');
 
         const managerProfile = await this.employeeProfileModel.findById(managerId);
@@ -367,15 +367,27 @@ export class EmployeeProfileService {
             throw new NotFoundException('Manager profile not found');
         }
 
-        if (!managerProfile.primaryPositionId) {
-            return [];
+        const isDeptHead = roles.some(r =>
+            r.toLowerCase() === SystemRole.DEPARTMENT_HEAD.toLowerCase() ||
+            r.toLowerCase() === SystemRole.SYSTEM_ADMIN.toLowerCase()
+        );
+
+        const query: any = {
+            status: { $ne: EmployeeStatus.TERMINATED },
+            _id: { $ne: new Types.ObjectId(managerId) } // Exclude self
+        };
+
+        if (isDeptHead && managerProfile.primaryDepartmentId) {
+            // Department Heads see everyone in their department
+            query.primaryDepartmentId = managerProfile.primaryDepartmentId;
+        } else if (managerProfile.primaryPositionId) {
+            // Direct Managers see their direct reports
+            query.supervisorPositionId = managerProfile.primaryPositionId;
+        } else {
+            return []; // No position or department head assignment
         }
 
-        // BR 18b: Privacy filter - exclude sensitive info (mobilePhone, personalEmail, address, nationalId, bankAccountNumber)
-        return this.employeeProfileModel.find({
-            supervisorPositionId: managerProfile.primaryPositionId,
-            status: { $ne: EmployeeStatus.TERMINATED },
-        })
+        return this.employeeProfileModel.find(query)
             .select('firstName lastName fullName employeeNumber primaryPositionId primaryDepartmentId workEmail status dateOfHire profilePictureUrl')
             .populate('primaryPositionId', 'title')
             .populate('primaryDepartmentId', 'name');
@@ -383,7 +395,8 @@ export class EmployeeProfileService {
 
     async getTeamProfilesPaginated(
         managerId: string,
-        queryDto: PaginationQueryDto
+        queryDto: PaginationQueryDto,
+        roles: string[] = []
     ): Promise<PaginatedResult<EmployeeProfile>> {
         this.validateObjectId(managerId, 'managerId');
 
@@ -395,25 +408,33 @@ export class EmployeeProfileService {
             throw new NotFoundException('Manager profile not found');
         }
 
-        if (!managerProfile.primaryPositionId) {
+        const isDeptHead = roles.some(r =>
+            r.toLowerCase() === SystemRole.DEPARTMENT_HEAD.toLowerCase() ||
+            r.toLowerCase() === SystemRole.SYSTEM_ADMIN.toLowerCase()
+        );
+
+        const query: any = {
+            status: { $ne: EmployeeStatus.TERMINATED },
+            _id: { $ne: new Types.ObjectId(managerId) }
+        };
+
+        if (isDeptHead && managerProfile.primaryDepartmentId) {
+            query.primaryDepartmentId = managerProfile.primaryDepartmentId;
+        } else if (managerProfile.primaryPositionId) {
+            query.supervisorPositionId = managerProfile.primaryPositionId;
+        } else {
             return this.createPaginatedResponse([], 0, page, limit);
         }
 
-        const filter = {
-            supervisorPositionId: managerProfile.primaryPositionId,
-            status: { $ne: EmployeeStatus.TERMINATED },
-        };
-
-        // BR 18b: Privacy filter - exclude sensitive info (mobilePhone, personalEmail, address, nationalId, bankAccountNumber)
         const [data, total] = await Promise.all([
-            this.employeeProfileModel.find(filter)
+            this.employeeProfileModel.find(query)
                 .select('firstName lastName fullName employeeNumber primaryPositionId primaryDepartmentId workEmail status dateOfHire profilePictureUrl')
                 .populate('primaryPositionId', 'title')
                 .populate('primaryDepartmentId', 'name')
                 .skip(skip)
                 .limit(limit)
                 .exec(),
-            this.employeeProfileModel.countDocuments(filter).exec(),
+            this.employeeProfileModel.countDocuments(query).exec(),
         ]);
 
         return this.createPaginatedResponse(data, total, page, limit);

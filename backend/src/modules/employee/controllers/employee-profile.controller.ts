@@ -124,13 +124,13 @@ export class EmployeeProfileController {
     @Get('team')
     @Roles(SystemRole.DEPARTMENT_HEAD, SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.SYSTEM_ADMIN)
     async getTeamProfiles(@CurrentUser() user: JwtPayload) {
-        return this.employeeProfileService.getTeamProfiles(user.sub);
+        return this.employeeProfileService.getTeamProfiles(user.sub, user.roles);
     }
 
     @Get('team/paginated')
     @Roles(SystemRole.DEPARTMENT_HEAD, SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.SYSTEM_ADMIN)
     async getTeamProfilesPaginated(@CurrentUser() user: JwtPayload, @Query() queryDto: PaginationQueryDto) {
-        return this.employeeProfileService.getTeamProfilesPaginated(user.sub, queryDto);
+        return this.employeeProfileService.getTeamProfilesPaginated(user.sub, queryDto, user.roles);
     }
 
     // ==========================================
