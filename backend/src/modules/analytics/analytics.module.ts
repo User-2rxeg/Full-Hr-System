@@ -56,6 +56,24 @@ import { terminationAndResignationBenefits, terminationAndResignationBenefitsSch
 import { CompanyWideSettings, CompanyWideSettingsSchema } from '../payroll/payroll-configuration/models/CompanyWideSettings.schema';
 import { PayrollConfigurationAnalyticsService } from './services/payroll-configuration-analytics.service';
 import { PayrollConfigurationAnalyticsController } from './controllers/payroll-configuration-analytics.controller';
+// Time Management imports
+import { ShiftAssignment, ShiftAssignmentSchema } from '../time-management/models/shift-assignment.schema';
+import { Shift, ShiftSchema } from '../time-management/models/shift.schema';
+import { ShiftType, ShiftTypeSchema } from '../time-management/models/shift-type.schema';
+import { Holiday, HolidaySchema } from '../time-management/models/holiday.schema';
+import { TimeException, TimeExceptionSchema } from '../time-management/models/time-exception.schema';
+import { OvertimeRule, OvertimeRuleSchema } from '../time-management/models/overtime-rule.schema';
+import { TimeManagementAnalyticsService } from './services/time-management-analytics.service';
+import { TimeManagementAnalyticsController } from './controllers/time-management-analytics.controller';
+// Leaves imports
+import { LeaveRequest, LeaveRequestSchema } from '../leaves/models/leave-request.schema';
+import { LeaveType, LeaveTypeSchema } from '../leaves/models/leave-type.schema';
+import { LeaveEntitlement, LeaveEntitlementSchema } from '../leaves/models/leave-entitlement.schema';
+import { LeavePolicy, LeavePolicySchema } from '../leaves/models/leave-policy.schema';
+import { LeaveCategory, LeaveCategorySchema } from '../leaves/models/leave-category.schema';
+import { LeaveAdjustment, LeaveAdjustmentSchema } from '../leaves/models/leave-adjustment.schema';
+import { LeavesAnalyticsService } from './services/leaves-analytics.service';
+import { LeavesAnalyticsController } from './controllers/leaves-analytics.controller';
 
 @Module({
     imports: [
@@ -95,6 +113,20 @@ import { PayrollConfigurationAnalyticsController } from './controllers/payroll-c
             { name: payrollPolicies.name, schema: payrollPoliciesSchema },
             { name: terminationAndResignationBenefits.name, schema: terminationAndResignationBenefitsSchema },
             { name: CompanyWideSettings.name, schema: CompanyWideSettingsSchema },
+            // Time Management schemas
+            { name: ShiftAssignment.name, schema: ShiftAssignmentSchema },
+            { name: Shift.name, schema: ShiftSchema },
+            { name: ShiftType.name, schema: ShiftTypeSchema },
+            { name: Holiday.name, schema: HolidaySchema },
+            { name: TimeException.name, schema: TimeExceptionSchema },
+            { name: OvertimeRule.name, schema: OvertimeRuleSchema },
+            // Leaves schemas
+            { name: LeaveRequest.name, schema: LeaveRequestSchema },
+            { name: LeaveType.name, schema: LeaveTypeSchema },
+            { name: LeaveEntitlement.name, schema: LeaveEntitlementSchema },
+            { name: LeavePolicy.name, schema: LeavePolicySchema },
+            { name: LeaveCategory.name, schema: LeaveCategorySchema },
+            { name: LeaveAdjustment.name, schema: LeaveAdjustmentSchema },
         ]),
         AuthModule,
     ],
@@ -109,6 +141,8 @@ import { PayrollConfigurationAnalyticsController } from './controllers/payroll-c
         OffboardingAnalyticsController,
         RecruitmentAnalyticsController,
         PayrollConfigurationAnalyticsController,
+        TimeManagementAnalyticsController,
+        LeavesAnalyticsController,
     ],
     providers: [
         AnalyticsService, 
@@ -116,11 +150,13 @@ import { PayrollConfigurationAnalyticsController } from './controllers/payroll-c
         PayrollAnalyticsService, 
         WorkforceAnalyticsService,
         OrgStructureAnalyticsService,
-         RecruitmentAnalyticsService,
+        RecruitmentAnalyticsService,
         OnboardingAnalyticsService,
         OffboardingAnalyticsService,
         LifecycleAnalyticsService,
         PayrollConfigurationAnalyticsService,
+        TimeManagementAnalyticsService,
+        LeavesAnalyticsService,
     ],
     exports: [
         AnalyticsService, 
@@ -133,6 +169,8 @@ import { PayrollConfigurationAnalyticsController } from './controllers/payroll-c
         OffboardingAnalyticsService,
         LifecycleAnalyticsService,
         PayrollConfigurationAnalyticsService,
+        TimeManagementAnalyticsService,
+        LeavesAnalyticsService,
     ],
 })
 export class AnalyticsModule { }

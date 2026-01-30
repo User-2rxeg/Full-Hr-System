@@ -279,6 +279,7 @@ const HR_MANAGER_SECTIONS: NavSection[] = [
           { label: 'Lateness', href: '/dashboard/hr-manager/time-management/Lateness', icon: 'clock' },
           { label: 'Schedule Rules', href: '/dashboard/hr-manager/time-management/schedule-rules', icon: 'calendar' },
           { label: 'Configure Rules', href: '/dashboard/hr-manager/time-management/ConfigureRules', icon: 'settings' },
+          { label: 'Analytics', href: '/dashboard/hr-manager/time-management-analytics', icon: 'bar-chart-2' },
         ],
       },
       {
@@ -319,6 +320,10 @@ const HR_MANAGER_SECTIONS: NavSection[] = [
         label: 'Leaves',
         href: '/dashboard/hr-manager/leaves',
         icon: 'calendar',
+        children: [
+          { label: 'Dashboard', href: '/dashboard/hr-manager/leaves', icon: 'layout' },
+          { label: 'Analytics', href: '/dashboard/hr-manager/leaves-analytics', icon: 'bar-chart-2' },
+        ],
       },
       {
         label: 'Offboarding',

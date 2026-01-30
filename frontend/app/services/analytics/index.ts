@@ -5,6 +5,8 @@ export * from './recruitment-analytics';
 export * from './onboarding-analytics';
 export * from './offboarding-analytics';
 export * from './lifecycle-analytics';
+export * from './time-management-analytics';
+export * from './leaves-analytics';
 
 export interface PayrollStory {
     headline: string;
