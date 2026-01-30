@@ -285,6 +285,10 @@ const HR_MANAGER_SECTIONS: NavSection[] = [
         label: 'Recruitment',
         href: '/dashboard/hr-manager/recruitment',
         icon: 'user-plus',
+        children: [
+          { label: 'Dashboard', href: '/dashboard/hr-manager/recruitment', icon: 'layout' },
+          { label: 'Advanced Analytics', href: '/dashboard/hr-manager/recruitment/analytics/advanced', icon: 'bar-chart-2' },
+        ],
       },
       {
         label: 'Onboarding',
@@ -295,6 +299,7 @@ const HR_MANAGER_SECTIONS: NavSection[] = [
           { label: 'Checklists', href: '/dashboard/hr-manager/onboarding/checklists', icon: 'check-square' },
           { label: 'Create Employee', href: '/dashboard/hr-manager/onboarding/employee', icon: 'user-plus' },
           { label: 'Payroll Setup', href: '/dashboard/hr-manager/onboarding/payroll', icon: 'dollar-sign' },
+          { label: 'Analytics', href: '/dashboard/hr-manager/onboarding/analytics', icon: 'pie-chart' },
         ],
       },
       {
@@ -319,6 +324,10 @@ const HR_MANAGER_SECTIONS: NavSection[] = [
         label: 'Offboarding',
         href: '/dashboard/hr-manager/offboarding',
         icon: 'log-out',
+        children: [
+          { label: 'Dashboard', href: '/dashboard/hr-manager/offboarding', icon: 'layout' },
+          { label: 'Analytics', href: '/dashboard/hr-manager/offboarding/analytics', icon: 'pie-chart' },
+        ],
       },
       {
         label: 'Insurance Brackets',
@@ -336,6 +345,14 @@ const HR_MANAGER_SECTIONS: NavSection[] = [
           { label: 'Employer Contributions', href: '/dashboard/hr-manager/payroll-tracking/contributions', icon: 'briefcase' },
           { label: 'Tax Documents', href: '/dashboard/hr-manager/payroll-tracking/tax-documents', icon: 'folder' },
           { label: 'Claims & Disputes', href: '/dashboard/hr-manager/payroll-tracking/claims-disputes', icon: 'alert-circle' },
+        ],
+      },
+      {
+        label: 'Workforce Analytics',
+        href: '/dashboard/hr-manager/organization/lifecycle-analytics',
+        icon: 'activity',
+        children: [
+          { label: 'Employee Lifecycle', href: '/dashboard/hr-manager/organization/lifecycle-analytics', icon: 'users' },
         ],
       },
     ],
@@ -635,9 +652,14 @@ const PAYROLL_MANAGER_NAV: NavItem[] = [
   },
 
   {
-    label: 'Dashboard Analytics',
+    label: 'Analytics & Insights',
     href: '/dashboard/payroll-manager/analytics',
     icon: 'bar-chart',
+    children: [
+      { label: 'AI Insights', href: '/dashboard/payroll-manager/analytics', icon: 'brain' },
+      { label: 'Advanced Analytics', href: '/dashboard/payroll-manager/analytics/advanced', icon: 'pie-chart' },
+      { label: 'Configuration Analytics', href: '/dashboard/payroll-manager/configuration-analytics', icon: 'settings' },
+    ],
   },
   {
     label: 'Dispute Confirmation',

@@ -80,6 +80,14 @@ import {
   Award
 } from "lucide-react";
 
+interface EmployeeRef {
+  _id?: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  employeeNumber?: string;
+}
+
 interface ConfigItem {
   id: string;
   name?: string;
@@ -97,8 +105,8 @@ interface ConfigItem {
   employerRate?: number;
   minSalary?: number;
   maxSalary?: number;
-  createdBy?: string;
-  approvedBy?: string;
+  createdBy?: string | EmployeeRef;
+  approvedBy?: string | EmployeeRef;
   approvedAt?: string;
   [key: string]: any;
 }
@@ -606,6 +614,28 @@ export default function PayrollSystemConfigurationApprovalPage() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // Format employee display from populated data or raw ID
+  const formatEmployee = (employee?: string | EmployeeRef): string => {
+    if (!employee) return "-";
+    
+    // If it's a string (raw ID), return it as is
+    if (typeof employee === 'string') {
+      return employee;
+    }
+    
+    // If it's a populated object, format with name and employee number
+    const name = employee.fullName || 
+      (employee.firstName && employee.lastName 
+        ? `${employee.firstName} ${employee.lastName}` 
+        : employee.firstName || employee.lastName || 'Unknown');
+    
+    if (employee.employeeNumber) {
+      return `${name} (${employee.employeeNumber})`;
+    }
+    
+    return name;
   };
 
   return (
@@ -1214,7 +1244,7 @@ export default function PayrollSystemConfigurationApprovalPage() {
                     <Label className="text-sm text-muted-foreground">Created By</Label>
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{view.createdBy}</span>
+                      <span className="text-foreground">{formatEmployee(view.createdBy)}</span>
                     </div>
                   </div>
                 )}
@@ -1226,7 +1256,7 @@ export default function PayrollSystemConfigurationApprovalPage() {
                     </Label>
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{view.approvedBy}</span>
+                      <span className="text-foreground">{formatEmployee(view.approvedBy)}</span>
                     </div>
                   </div>
                 )}

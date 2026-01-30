@@ -907,7 +907,7 @@ export class PayrollConfigurationService {
 
         const skip = (page - 1) * limit;
         const [data, total] = await Promise.all([
-            this.terminationBenefitsModel.find(query).skip(skip).limit(limit).sort({ createdAt: -1 }).exec(),
+            this.terminationBenefitsModel.find(query).skip(skip).limit(limit).sort({ createdAt: -1 }).populate('createdBy', 'firstName lastName employeeNumber fullName').populate('approvedBy', 'firstName lastName employeeNumber fullName').exec(),
             this.terminationBenefitsModel.countDocuments(query).exec(),
         ]);
 
@@ -921,7 +921,7 @@ export class PayrollConfigurationService {
     }
 
     async findOneTerminationBenefit(id: string): Promise<terminationAndResignationBenefits> {
-        const benefit = await this.terminationBenefitsModel.findById(id).exec();
+        const benefit = await this.terminationBenefitsModel.findById(id).populate('createdBy', 'firstName lastName employeeNumber fullName').populate('approvedBy', 'firstName lastName employeeNumber fullName').exec();
         if (!benefit) {
             throw new NotFoundException(`Termination benefit with ID ${id} not found`);
         }
@@ -1052,11 +1052,11 @@ export class PayrollConfigurationService {
 
     async findAllPayGrades(status?: ConfigStatus) {
         const query = status ? { status } : {};
-        return await this.payGradeModel.find(query).sort({ createdAt: -1 }).exec();
+        return await this.payGradeModel.find(query).sort({ createdAt: -1 }).populate('createdBy', 'firstName lastName employeeNumber fullName').populate('approvedBy', 'firstName lastName employeeNumber fullName').exec();
     }
 
     async findOnePayGrade(id: string) {
-        const payGrade = await this.payGradeModel.findById(id).exec();
+        const payGrade = await this.payGradeModel.findById(id).populate('createdBy', 'firstName lastName employeeNumber fullName').populate('approvedBy', 'firstName lastName employeeNumber fullName').exec();
         if (!payGrade) {
             throw new NotFoundException(`Pay grade with ID ${id} not found`);
         }

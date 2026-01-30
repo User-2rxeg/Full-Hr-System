@@ -3,28 +3,42 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { organizationStructureService } from '@/app/services/organization-structure';
-import RoleGuard from '@/components/RoleGuard';
-import { SystemRole } from '@/types';
 import {
-    calculateStructuralHealth,
-    calculateDepartmentAnalytics,
-    assessPositionRisk,
-    analyzeCostCenters,
+    orgStructureAnalyticsService,
     StructuralHealthScore,
     DepartmentAnalytics,
     PositionRiskAssessment,
     CostCenterSummary,
-    Department,
-    Position,
-    Assignment,
-    predictChangeImpact,
     ChangeImpactAnalysis
-} from '@/app/services/analytics/orgStructureDS';
+} from '@/app/services/org-structure-analytics';
+import RoleGuard from '@/components/RoleGuard';
+import { SystemRole } from '@/types';
+
+// Local interface definitions for raw data (for simulator)
+interface Department {
+    _id: string;
+    name: string;
+    code: string;
+    parentDepartmentId?: { _id: string; name: string } | string;
+    headOfDepartmentId?: { _id: string; firstName: string; lastName: string } | string;
+    costCenter?: string;
+    isActive: boolean;
+}
+
+interface Position {
+    _id: string;
+    title: string;
+    code: string;
+    departmentId: { _id: string; name: string } | string;
+    reportsToPositionId?: { _id: string; title: string } | string;
+    isActive: boolean;
+}
 
 /**
  * Organization Structure Analytics Dashboard
  * Data Science, Visualization, and Intelligence features
  * REQ-OSM-01, REQ-OSM-02, BR 24, BR 30
+ * Now uses backend analytics service for consistency with HR Admin page
  */
 
 export default function StructureAnalyticsPage() {
@@ -32,12 +46,12 @@ export default function StructureAnalyticsPage() {
     const [error, setError] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState<'health' | 'departments' | 'positions' | 'costs' | 'simulation'>('health');
 
-    // Raw data
+    // Raw data (for simulator dropdowns)
     const [departments, setDepartments] = useState<Department[]>([]);
     const [positions, setPositions] = useState<Position[]>([]);
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [assignmentCount, setAssignmentCount] = useState<number>(0);
 
-    // Computed analytics
+    // Backend analytics data
     const [healthScore, setHealthScore] = useState<StructuralHealthScore | null>(null);
     const [deptAnalytics, setDeptAnalytics] = useState<DepartmentAnalytics[]>([]);
     const [positionRisks, setPositionRisks] = useState<PositionRiskAssessment[]>([]);
@@ -47,11 +61,19 @@ export default function StructureAnalyticsPage() {
     const [simulationType, setSimulationType] = useState<'DEACTIVATE_POSITION' | 'DEACTIVATE_DEPARTMENT'>('DEACTIVATE_POSITION');
     const [simulationTarget, setSimulationTarget] = useState<string>('');
     const [simulationResult, setSimulationResult] = useState<ChangeImpactAnalysis | null>(null);
+    const [simulationLoading, setSimulationLoading] = useState(false);
 
-    const handleRunSimulation = (type: 'DEACTIVATE_POSITION' | 'DEACTIVATE_DEPARTMENT', targetId: string) => {
+    const handleRunSimulation = async (type: 'DEACTIVATE_POSITION' | 'DEACTIVATE_DEPARTMENT', targetId: string) => {
         if (!targetId) return;
-        const result = predictChangeImpact(type, targetId, positions, assignments);
-        setSimulationResult(result);
+        try {
+            setSimulationLoading(true);
+            const result = await orgStructureAnalyticsService.simulateChangeImpact(type, targetId);
+            setSimulationResult(result);
+        } catch (err: any) {
+            setError(err.message || 'Simulation failed');
+        } finally {
+            setSimulationLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -63,30 +85,33 @@ export default function StructureAnalyticsPage() {
             setLoading(true);
             setError(null);
 
-            // Fetch all data (using high limits to ensure full dataset for analytics)
-            const [deptRes, posRes, assignRes] = await Promise.all([
+            // Fetch raw data for simulator dropdowns + backend analytics
+            const [deptRes, posRes, assignRes, healthRes, deptAnalyticsRes, riskRes, costRes] = await Promise.all([
                 organizationStructureService.searchDepartments(undefined, undefined, 1, 1000),
                 organizationStructureService.searchPositions(undefined, undefined, undefined, 1, 1000),
                 organizationStructureService.searchAssignments(undefined, undefined, undefined, undefined, 1, 1000),
+                orgStructureAnalyticsService.getStructuralHealth(),
+                orgStructureAnalyticsService.getDepartmentAnalytics(),
+                orgStructureAnalyticsService.getPositionRiskAssessment(),
+                orgStructureAnalyticsService.getCostCenterAnalysis(),
             ]);
 
-            // API response is wrapped in ApiResponse, and backend returns PaginatedResult
+            // Extract raw data for simulator dropdowns
             const deptRaw = deptRes.data as any;
             const posRaw = posRes.data as any;
             const assignRaw = assignRes.data as any;
             const depts = deptRaw?.data ?? deptRaw ?? [];
             const poss = posRaw?.data ?? posRaw ?? [];
-            const assigns = (assignRaw?.data ?? assignRaw ?? []) as Assignment[];
-
+            const assigns = assignRaw?.data ?? assignRaw ?? [];
             setDepartments(Array.isArray(depts) ? depts : []);
             setPositions(Array.isArray(poss) ? poss : []);
-            setAssignments(Array.isArray(assigns) ? assigns : []);
+            setAssignmentCount(Array.isArray(assigns) ? assigns.length : 0);
 
-            // Run analytics
-            setHealthScore(calculateStructuralHealth(depts, poss, assigns));
-            setDeptAnalytics(calculateDepartmentAnalytics(depts, poss, assigns));
-            setPositionRisks(assessPositionRisk(poss, assigns));
-            setCostCenters(analyzeCostCenters(depts, poss, assigns));
+            // Set backend analytics data (these services return data directly)
+            if (healthRes) setHealthScore(healthRes);
+            if (deptAnalyticsRes) setDeptAnalytics(deptAnalyticsRes);
+            if (riskRes) setPositionRisks(riskRes);
+            if (costRes) setCostCenters(costRes);
 
         } catch (err: any) {
             setError(err.message || 'Failed to load analytics');
@@ -299,7 +324,7 @@ export default function StructureAnalyticsPage() {
                                             <div className="text-sm text-muted-foreground">Positions</div>
                                         </div>
                                         <div className="text-center p-4 bg-muted/50 rounded-lg">
-                                            <div className="text-3xl font-bold text-foreground">{assignments.length}</div>
+                                            <div className="text-3xl font-bold text-foreground">{assignmentCount}</div>
                                             <div className="text-sm text-muted-foreground">Assignments</div>
                                         </div>
                                         <div className="text-center p-4 bg-muted/50 rounded-lg">

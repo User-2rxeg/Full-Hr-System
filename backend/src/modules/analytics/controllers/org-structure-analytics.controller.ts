@@ -47,7 +47,7 @@ export class OrgStructureAnalyticsController {
     }
 
     @Get('cost-centers')
-    @Roles(SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.SYSTEM_ADMIN)
+    @Roles(SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.SYSTEM_ADMIN, SystemRole.DEPARTMENT_HEAD)
     @ApiOperation({ summary: 'Get cost center analysis with utilization rates' })
     async getCostCenterAnalysis() {
         return this.orgAnalyticsService.getCostCenterAnalysis();
@@ -68,7 +68,7 @@ export class OrgStructureAnalyticsController {
     }
 
     @Post('simulate')
-    @Roles(SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.SYSTEM_ADMIN)
+    @Roles(SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.SYSTEM_ADMIN, SystemRole.DEPARTMENT_HEAD)
     @ApiOperation({ summary: 'Simulate the impact of a structural change (deactivate position/department)' })
     @ApiBody({ type: SimulateChangeDto })
     async simulateChangeImpact(@Body() body: SimulateChangeDto) {

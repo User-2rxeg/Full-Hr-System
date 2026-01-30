@@ -11,15 +11,13 @@ import {
     SpanOfControlMetric,
     TeamStructureMetrics,
     OrgChartNode,
+    WorkforceVacancyForecast,
+    NetworkMetrics as BackendNetworkMetrics,
+    StructureMetrics as BackendStructureMetrics,
 } from '@/app/services/org-structure-analytics';
 import {
     EmployeeNode,
-    calculateStructureMetrics,
-    StructureMetrics,
-    predictVacancies,
-    VacancyForecast as LocalVacancyForecast,
-    calculateNetworkMetrics,
-    NetworkMetrics
+    transformToOrgChart,
 } from '@/app/services/analytics/structureAnalytics';
 import {
     Network,
@@ -59,9 +57,9 @@ interface Position {
 export default function StructureAnalyticsPage() {
     const [loading, setLoading] = useState(true);
     const [employees, setEmployees] = useState<EmployeeNode[]>([]);
-    const [metrics, setMetrics] = useState<StructureMetrics | null>(null);
-    const [forecast, setForecast] = useState<LocalVacancyForecast | null>(null);
-    const [network, setNetwork] = useState<NetworkMetrics | null>(null);
+    const [metrics, setMetrics] = useState<BackendStructureMetrics | null>(null);
+    const [forecast, setForecast] = useState<WorkforceVacancyForecast | null>(null);
+    const [network, setNetwork] = useState<BackendNetworkMetrics | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'forecasting' | 'network' | 'simulator'>('overview');
 
@@ -102,40 +100,42 @@ export default function StructureAnalyticsPage() {
             try {
                 setLoading(true);
                 
-                // Fetch employee profiles for structure analysis
-                const response = await employeeProfileService.getTeamProfiles();
-
-                if (response.error) throw new Error(response.error);
-                if (!response.data || !Array.isArray(response.data)) throw new Error("Invalid structure data");
-
-                const nodes: EmployeeNode[] = response.data.map((m: any) => ({
-                    id: m._id,
-                    name: m.fullName || `${m.firstName} ${m.lastName}`,
-                    position: m.primaryPositionId?.title || 'Unknown Position',
-                    department: m.primaryDepartmentId?.name || 'Unknown Dept',
-                    managerId: m.reportsToId?._id || m.reportsToId || null,
-                    imageUrl: m.profilePicture
-                }));
-
-                setEmployees(nodes);
-
-                // Calculate Metrics
-                const calculatedMetrics = calculateStructureMetrics(nodes);
-                setMetrics(calculatedMetrics);
-
-                // Helper: Predict
-                setForecast(predictVacancies(calculatedMetrics, nodes));
-
-                // Helper: Network
-                setNetwork(calculateNetworkMetrics(nodes));
-
-                // Fetch org structure data for simulator dropdowns
-                const [deptRes, posRes] = await Promise.all([
+                // Fetch all data from backend in parallel
+                const [
+                    teamResponse,
+                    structureMetricsRes,
+                    vacancyForecastRes,
+                    networkMetricsRes,
+                    deptRes,
+                    posRes
+                ] = await Promise.all([
+                    employeeProfileService.getTeamProfiles(),
+                    orgStructureAnalyticsService.getStructureMetrics(),
+                    orgStructureAnalyticsService.getWorkforceVacancyForecast(6),
+                    orgStructureAnalyticsService.getNetworkMetrics(),
                     organizationStructureService.searchDepartments(undefined, undefined, 1, 1000),
                     organizationStructureService.searchPositions(undefined, undefined, undefined, 1, 1000),
                 ]);
 
-                // API response is wrapped in ApiResponse, and backend returns PaginatedResult
+                // Process team profiles for org chart visualization
+                if (!teamResponse.error && teamResponse.data && Array.isArray(teamResponse.data)) {
+                    const nodes: EmployeeNode[] = teamResponse.data.map((m: any) => ({
+                        id: m._id,
+                        name: m.fullName || `${m.firstName} ${m.lastName}`,
+                        position: m.primaryPositionId?.title || 'Unknown Position',
+                        department: m.primaryDepartmentId?.name || 'Unknown Dept',
+                        managerId: m.supervisorPositionId || null,
+                        imageUrl: m.profilePicture
+                    }));
+                    setEmployees(nodes);
+                }
+
+                // Set backend analytics
+                setMetrics(structureMetricsRes);
+                setForecast(vacancyForecastRes);
+                setNetwork(networkMetricsRes);
+
+                // Fetch org structure data for simulator dropdowns
                 const deptRaw = deptRes.data as any;
                 const posRaw = posRes.data as any;
                 const deptData = deptRaw?.data ?? deptRaw ?? [];
@@ -338,8 +338,8 @@ export default function StructureAnalyticsPage() {
                                         <Activity className="w-5 h-5" />
                                         <span className="text-xs font-bold uppercase tracking-widest">Projected Turnover</span>
                                     </div>
-                                    <div className="text-5xl font-black tracking-tighter mb-2">{forecast.currentRate}%</div>
-                                    <p className="text-sm text-slate-400">Annualized attrition rate based on structural risk factors.</p>
+                                    <div className="text-5xl font-black tracking-tighter mb-2">{forecast.currentAttritionRate}%</div>
+                                    <p className="text-sm text-slate-400">Annualized attrition rate based on historical data.</p>
                                 </div>
 
                                 <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
@@ -347,8 +347,8 @@ export default function StructureAnalyticsPage() {
                                         <Users className="w-5 h-5" />
                                         <span className="text-xs font-bold uppercase tracking-widest">Predicted Vacancies</span>
                                     </div>
-                                    <div className="text-5xl font-black tracking-tighter text-slate-900 mb-2">{forecast.predictedVacanciesBeforeYearEnd}</div>
-                                    <p className="text-sm text-slate-500">Roles likely to require backfilling before year end.</p>
+                                    <div className="text-5xl font-black tracking-tighter text-slate-900 mb-2">{forecast.predictedVacancies}</div>
+                                    <p className="text-sm text-slate-500">Roles likely to require backfilling in forecast period.</p>
                                 </div>
 
                                 <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden relative">
@@ -404,15 +404,18 @@ export default function StructureAnalyticsPage() {
                                     <div className="space-y-4">
                                         {forecast.highRiskDepts.map((d, i) => (
                                             <div key={i} className="bg-white p-4 rounded-lg border border-slate-100 flex justify-between items-center shadow-sm">
-                                                <span className="text-xs font-bold text-slate-700">{d.name}</span>
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-700">{d.name}</span>
+                                                    <span className="text-[10px] text-slate-400 ml-2">({d.headcount} employees)</span>
+                                                </div>
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                         <div
-                                                            className={`h-full rounded-full ${d.probability > 20 ? 'bg-red-500' : 'bg-amber-500'}`}
-                                                            style={{ width: `${d.probability}%` }}
+                                                            className={`h-full rounded-full ${d.attritionRate > 20 ? 'bg-red-500' : 'bg-amber-500'}`}
+                                                            style={{ width: `${Math.min(100, d.attritionRate)}%` }}
                                                         ></div>
                                                     </div>
-                                                    <span className="text-xs font-black text-slate-900">{d.probability}%</span>
+                                                    <span className="text-xs font-black text-slate-900">{d.attritionRate}%</span>
                                                 </div>
                                             </div>
                                         ))}

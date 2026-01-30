@@ -5,6 +5,7 @@ import apiService from '../api';
 export interface StructuralHealthScore {
     overall: number;
     grade: 'A' | 'B' | 'C' | 'D' | 'F';
+    trend?: 'improving' | 'stable' | 'declining';
     dimensions: {
         fillRate: number;
         spanOfControl: number;
@@ -19,6 +20,7 @@ export interface HealthInsight {
     title: string;
     description: string;
     metric?: string;
+    recommendation?: string;
 }
 
 export interface DepartmentAnalytics {
@@ -27,11 +29,13 @@ export interface DepartmentAnalytics {
     totalPositions: number;
     filledPositions: number;
     vacantPositions: number;
+    frozenPositions?: number;
     fillRate: number;
     healthScore: number;
     riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
     headcount: number;
     avgTenure: number;
+    headcountTrend?: 'growing' | 'stable' | 'shrinking';
 }
 
 export interface PositionRiskAssessment {
@@ -129,6 +133,42 @@ export interface OrgChartNode {
     department: string;
     managerId: string | null;
     imageUrl: string | null;
+}
+
+// New interfaces for forecasting and network analytics
+export interface WorkforceVacancyForecast {
+    currentAttritionRate: number;
+    predictedVacancies: number;
+    riskFactors: string[];
+    monthlyProjections: { month: string; count: number }[];
+    highRiskDepts: { name: string; attritionRate: number; headcount: number }[];
+    methodology: string;
+}
+
+export interface NetworkMetrics {
+    influencers: { id: string; name: string; score: number; dept: string; directReports: number }[];
+    collaborationMatrix: { deptA: string; deptB: string; score: number }[];
+    density: number;
+    avgTeamSize: number;
+    crossDeptConnections: number;
+}
+
+export interface StructureMetrics {
+    totalEmployees: number;
+    spanOfControl: {
+        avg: number;
+        min: number;
+        max: number;
+        median: number;
+        distribution: Record<string, number>;
+    };
+    depth: {
+        max: number;
+        avg: number;
+        distribution: Record<string, number>;
+    };
+    healthScore: number;
+    issues: string[];
 }
 
 // ============ SERVICE ============
@@ -261,5 +301,40 @@ export const orgStructureAnalyticsService = {
             throw new Error(response.error);
         }
         return response.data as VacancyForecast[];
+    },
+
+    // ============ WORKFORCE ANALYTICS (FROM BACKEND) ============
+
+    /**
+     * Get workforce vacancy forecast based on historical attrition
+     */
+    getWorkforceVacancyForecast: async (months: number = 6): Promise<WorkforceVacancyForecast> => {
+        const response = await apiService.get<WorkforceVacancyForecast>(`/analytics/vacancy-forecast?months=${months}`);
+        if (response.error) {
+            throw new Error(response.error);
+        }
+        return response.data as WorkforceVacancyForecast;
+    },
+
+    /**
+     * Get organization network metrics (influencers, collaboration)
+     */
+    getNetworkMetrics: async (): Promise<NetworkMetrics> => {
+        const response = await apiService.get<NetworkMetrics>('/analytics/network-metrics');
+        if (response.error) {
+            throw new Error(response.error);
+        }
+        return response.data as NetworkMetrics;
+    },
+
+    /**
+     * Get structure metrics (span of control, depth, health)
+     */
+    getStructureMetrics: async (): Promise<StructureMetrics> => {
+        const response = await apiService.get<StructureMetrics>('/analytics/structure-metrics');
+        if (response.error) {
+            throw new Error(response.error);
+        }
+        return response.data as StructureMetrics;
     },
 };

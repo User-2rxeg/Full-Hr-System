@@ -23,7 +23,7 @@ export class AnalyticsController {
     }
 
     @Get('attrition/:employeeId')
-    @Roles(SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.HR_EMPLOYEE, SystemRole.SYSTEM_ADMIN)
+    @Roles(SystemRole.HR_MANAGER, SystemRole.HR_ADMIN, SystemRole.HR_EMPLOYEE, SystemRole.SYSTEM_ADMIN, SystemRole.DEPARTMENT_HEAD)
     @ApiOperation({ summary: 'Predict attrition risk for a specific employee' })
     async getAttritionRisk(@Param('employeeId') employeeId: string) {
         return this.analyticsService.predictAttritionRisk(employeeId);

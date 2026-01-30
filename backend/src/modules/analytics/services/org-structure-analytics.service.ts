@@ -12,6 +12,7 @@ import { EmployeeStatus } from '../../employee/enums/employee-profile.enums';
 export interface StructuralHealthScore {
     overall: number;
     grade: 'A' | 'B' | 'C' | 'D' | 'F';
+    trend?: 'improving' | 'stable' | 'declining';
     dimensions: {
         fillRate: number;
         spanOfControl: number;
@@ -26,6 +27,7 @@ export interface HealthInsight {
     title: string;
     description: string;
     metric?: string;
+    recommendation?: string;
 }
 
 export interface DepartmentAnalytics {
@@ -34,11 +36,13 @@ export interface DepartmentAnalytics {
     totalPositions: number;
     filledPositions: number;
     vacantPositions: number;
+    frozenPositions?: number;
     fillRate: number;
     healthScore: number;
     riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
     headcount: number;
     avgTenure: number;
+    headcountTrend?: 'growing' | 'stable' | 'shrinking';
 }
 
 export interface PositionRiskAssessment {
@@ -107,13 +111,29 @@ export class OrgStructureAnalyticsService {
     ) { }
 
     /**
+     * Get filter for active assignments (no endDate or endDate in future)
+     * PositionAssignment doesn't have isActive field - use endDate to determine active status
+     */
+    private getActiveAssignmentFilter(additionalFilters: Record<string, any> = {}): Record<string, any> {
+        const now = new Date();
+        return {
+            $or: [
+                { endDate: { $exists: false } },
+                { endDate: null },
+                { endDate: { $gt: now } }
+            ],
+            ...additionalFilters
+        };
+    }
+
+    /**
      * Calculate overall structural health score
      */
     async getStructuralHealth(): Promise<StructuralHealthScore> {
         const [departments, positions, assignments, employees] = await Promise.all([
             this.departmentModel.find({ isActive: true }).lean(),
             this.positionModel.find({ isActive: true }).lean(),
-            this.assignmentModel.find({ isActive: true }).lean(),
+            this.assignmentModel.find(this.getActiveAssignmentFilter()).lean(),
             this.employeeModel.find({ status: { $in: [EmployeeStatus.ACTIVE, EmployeeStatus.ON_LEAVE, EmployeeStatus.PROBATION] } }).lean(),
         ]);
 
@@ -239,7 +259,7 @@ export class OrgStructureAnalyticsService {
         const [departments, positions, assignments, employees] = await Promise.all([
             this.departmentModel.find({ isActive: true }).lean(),
             this.positionModel.find({ isActive: true }).lean(),
-            this.assignmentModel.find({ isActive: true }).populate('employeeId').lean(),
+            this.assignmentModel.find(this.getActiveAssignmentFilter()).populate('employeeProfileId').lean(),
             this.employeeModel.find({ 
                 status: { $in: [EmployeeStatus.ACTIVE, EmployeeStatus.ON_LEAVE, EmployeeStatus.PROBATION] } 
             }).lean(),
@@ -308,7 +328,7 @@ export class OrgStructureAnalyticsService {
         const [departments, positions, assignments, employees] = await Promise.all([
             this.departmentModel.find({ isActive: true }).lean(),
             this.positionModel.find({ isActive: true }).lean(),
-            this.assignmentModel.find({ isActive: true }).lean(),
+            this.assignmentModel.find(this.getActiveAssignmentFilter()).lean(),
             this.employeeModel.find({ 
                 status: { $in: [EmployeeStatus.ACTIVE, EmployeeStatus.ON_LEAVE, EmployeeStatus.PROBATION] } 
             }).lean(),
@@ -410,7 +430,7 @@ export class OrgStructureAnalyticsService {
         const [departments, positions, assignments] = await Promise.all([
             this.departmentModel.find({ isActive: true }).lean(),
             this.positionModel.find({ isActive: true }).lean(),
-            this.assignmentModel.find({ isActive: true }).lean(),
+            this.assignmentModel.find(this.getActiveAssignmentFilter()).lean(),
         ]);
 
         // Group by cost center
@@ -454,7 +474,7 @@ export class OrgStructureAnalyticsService {
         const [departments, positions, assignments] = await Promise.all([
             this.departmentModel.find({ isActive: true }).lean(),
             this.positionModel.find({ isActive: true }).lean(),
-            this.assignmentModel.find({ isActive: true }).lean(),
+            this.assignmentModel.find(this.getActiveAssignmentFilter()).lean(),
         ]);
 
         let targetName = '';
@@ -575,7 +595,7 @@ export class OrgStructureAnalyticsService {
         const [departments, positions, assignments] = await Promise.all([
             this.departmentModel.find({ isActive: true }).lean(),
             this.positionModel.find({ isActive: true }).lean(),
-            this.assignmentModel.find({ isActive: true }).lean(),
+            this.assignmentModel.find(this.getActiveAssignmentFilter()).lean(),
         ]);
 
         const deptMap = new Map(departments.map(d => [d._id.toString(), d.name]));
@@ -617,7 +637,7 @@ export class OrgStructureAnalyticsService {
         const [departments, positions, assignments, employees] = await Promise.all([
             this.departmentModel.find({ isActive: true }).lean(),
             this.positionModel.find({ isActive: true }).lean(),
-            this.assignmentModel.find({ isActive: true }).lean(),
+            this.assignmentModel.find(this.getActiveAssignmentFilter()).lean(),
             this.employeeModel.find({ 
                 status: { $in: [EmployeeStatus.ACTIVE, EmployeeStatus.ON_LEAVE, EmployeeStatus.PROBATION] } 
             }).lean(),
@@ -707,10 +727,17 @@ export class OrgStructureAnalyticsService {
      * Get organization summary stats
      */
     async getOrgSummaryStats() {
+        const now = new Date();
         const [departments, positions, assignments, employees] = await Promise.all([
             this.departmentModel.countDocuments({ isActive: true }),
             this.positionModel.countDocuments({ isActive: true }),
-            this.assignmentModel.countDocuments({ isActive: true }),
+            this.assignmentModel.countDocuments({
+                $or: [
+                    { endDate: { $exists: false } },
+                    { endDate: null },
+                    { endDate: { $gt: now } }
+                ]
+            }),
             this.employeeModel.countDocuments({ 
                 status: { $in: [EmployeeStatus.ACTIVE, EmployeeStatus.ON_LEAVE, EmployeeStatus.PROBATION] } 
             }),
@@ -749,10 +776,9 @@ export class OrgStructureAnalyticsService {
 
         // Get assignments for these positions
         const positionIds = positions.map(p => p._id);
-        const assignments = await this.assignmentModel.find({
-            positionId: { $in: positionIds },
-            isActive: true,
-        }).populate('employeeProfileId').lean();
+        const assignments = await this.assignmentModel.find(this.getActiveAssignmentFilter({
+            positionId: { $in: positionIds }
+        })).populate('employeeProfileId').lean();
 
         // Get employee profiles
         const employeeIds = assignments
@@ -855,10 +881,9 @@ export class OrgStructureAnalyticsService {
 
         // Get assignments for these positions
         const positionIds = positions.map(p => p._id);
-        const assignments = await this.assignmentModel.find({
-            positionId: { $in: positionIds },
-            isActive: true,
-        }).populate('employeeProfileId').lean();
+        const assignments = await this.assignmentModel.find(this.getActiveAssignmentFilter({
+            positionId: { $in: positionIds }
+        })).populate('employeeProfileId').lean();
 
         // Build employee nodes
         const positionMap = new Map(positions.map(p => [p._id.toString(), p]));
