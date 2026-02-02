@@ -25,7 +25,7 @@ export class PayrollExecutionController {
 
 	// ============ SIGNING BONUS ENDPOINTS ============
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Post('approve-signing-bonuses')
 	@HttpCode(HttpStatus.OK)
@@ -36,7 +36,7 @@ export class PayrollExecutionController {
 		return { status: 'all_signing_bonuses_approved', ...result };
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('signing-bonuses')
 	@ApiOperation({ summary: 'List signing bonuses (optional status filter)' })
@@ -48,7 +48,7 @@ export class PayrollExecutionController {
 		return items;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('signing-bonuses/:id')
 	@ApiOperation({ summary: 'Get a single signing bonus by id' })
@@ -59,7 +59,7 @@ export class PayrollExecutionController {
 		return item;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('signing-bonuses/:id/edit')
 	@ApiOperation({ summary: 'REQ-PY-29: Edit a signing bonus (BR 25: requires authorization)' })
@@ -72,7 +72,7 @@ export class PayrollExecutionController {
 		return updated;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('signing-bonuses/:id/approve')
 	@ApiOperation({ summary: 'REQ-PY-28: Approve a single signing bonus (BR 28: disbursed only once)' })
@@ -83,7 +83,7 @@ export class PayrollExecutionController {
 		return updated;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('signing-bonuses/:id/reject')
 	@ApiOperation({ summary: 'REQ-PY-28: Reject a signing bonus' })
@@ -97,7 +97,7 @@ export class PayrollExecutionController {
 
 	// ============ TERMINATION/RESIGNATION BENEFITS ENDPOINTS ============
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Get('termination-benefits')
 	@ApiOperation({ summary: 'List termination/resignation benefits (optional status filter)' })
@@ -109,7 +109,7 @@ export class PayrollExecutionController {
 		return items;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Get('termination-benefits/:id')
 	@ApiOperation({ summary: 'Get a single termination/resignation benefit by id' })
@@ -120,7 +120,7 @@ export class PayrollExecutionController {
 		return item;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('termination-benefits/:id/edit')
 	@ApiOperation({ summary: 'REQ-PY-32: Edit a termination/resignation benefit (BR 27: requires approval)' })
@@ -133,7 +133,7 @@ export class PayrollExecutionController {
 		return updated;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('termination-benefits/:id/approve')
 	@ApiOperation({ summary: 'REQ-PY-31: Approve a termination/resignation benefit (BR 26: requires clearance)' })
@@ -144,7 +144,7 @@ export class PayrollExecutionController {
 		return updated;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('termination-benefits/:id/reject')
 	@ApiOperation({ summary: 'REQ-PY-31: Reject a termination/resignation benefit' })
@@ -158,7 +158,7 @@ export class PayrollExecutionController {
 
 	// ============ PAYROLL INITIATION ENDPOINTS ============
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('initiation')
 	@HttpCode(HttpStatus.CREATED)
@@ -171,7 +171,7 @@ export class PayrollExecutionController {
 		return created;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Get('initiation/:id')
 	@ApiOperation({ summary: 'Get payroll initiation by id' })
@@ -182,7 +182,7 @@ export class PayrollExecutionController {
 		return initiation;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Patch('initiation/:id')
 	@ApiOperation({ summary: 'REQ-PY-26: Edit a payroll initiation (only when draft or rejected)' })
@@ -195,7 +195,7 @@ export class PayrollExecutionController {
 		return updated;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('initiation/:id/approve')
 	@ApiOperation({ summary: 'REQ-PY-24: Approve payroll initiation (triggers automatic processing REQ-PY-23)' })
@@ -206,7 +206,7 @@ export class PayrollExecutionController {
 		return updated;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('initiation/:id/reject')
 	@ApiOperation({ summary: 'Reject a payroll initiation with reason' })
@@ -220,7 +220,7 @@ export class PayrollExecutionController {
 
 	// ============ PAYROLL APPROVAL WORKFLOW ENDPOINTS ============
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.HR_MANAGER, SystemRole.PAYROLL_MANAGER)
 	@Post(':id/approve')
 	@ApiOperation({ summary: 'REQ-PY-22: Manager approval of payroll run (BR 30: multi-step approval)' })
@@ -231,7 +231,7 @@ export class PayrollExecutionController {
 		return { id, status: 'approved_by_manager' };
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.FINANCE_STAFF)
 	@Post(':id/approve-finance')
 	@ApiOperation({ summary: 'REQ-PY-15: Finance approval before payment (BR 18: final validation)' })
@@ -242,7 +242,7 @@ export class PayrollExecutionController {
 		return { id, status: 'approved_by_finance', paymentStatus: 'paid' };
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.HR_MANAGER, SystemRole.PAYROLL_MANAGER)
 	@Post(':id/freeze')
 	@ApiOperation({ summary: 'REQ-PY-7: Lock/freeze finalized payroll (prevents unauthorized changes)' })
@@ -253,7 +253,7 @@ export class PayrollExecutionController {
 		return { id, status: 'frozen' };
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.HR_MANAGER, SystemRole.PAYROLL_MANAGER)
 	@Post(':id/unfreeze')
 	@ApiOperation({ summary: 'REQ-PY-19: Unfreeze payroll under exceptional circumstances (requires reason)' })
@@ -266,7 +266,7 @@ export class PayrollExecutionController {
 		return { id, status: 'unfrozen', reason: body?.reason };
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.FINANCE_STAFF)
 	@Post(':id/generate-payslips')
 	@ApiOperation({ summary: 'REQ-PY-8: Generate and distribute employee payslips (automatic after REQ-PY-15)' })
@@ -281,7 +281,7 @@ export class PayrollExecutionController {
 
 	// ============ VIEWING AND REPORTING ENDPOINTS ============
 
-	///@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('draft/:id')
 	@ApiOperation({ summary: 'REQ-PY-6: Fetch payroll draft/run details for review' })
@@ -292,7 +292,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER, SystemRole.HR_ADMIN)
 	@Get('runs')
 	@ApiOperation({ summary: 'List payroll runs with optional filters' })
@@ -321,7 +321,7 @@ export class PayrollExecutionController {
 
 	// ============ PAYSLIP ENDPOINTS (REQ-PY-8, BR 17) ============
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('payslips/:payslipId')
 	@ApiOperation({ summary: 'REQ-PY-8 BR 17: Get single payslip with full breakdown of components' })
@@ -332,7 +332,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('diagnostics/employee-status')
 	@ApiOperation({ summary: 'Diagnostic: Check employee status distribution for payroll processing' })
@@ -342,7 +342,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('departments')
 	@ApiOperation({ summary: 'List all active departments for payroll entity dropdown' })
@@ -352,7 +352,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get(':id/payslips')
 	@ApiOperation({ summary: 'REQ-PY-8 BR 17: List all payslips for a payroll run with clear breakdown' })
@@ -365,7 +365,7 @@ export class PayrollExecutionController {
 
 	// ============ IRREGULARITY MANAGEMENT ENDPOINTS (REQ-PY-20) ============
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('irregularities/list')
 	@ApiOperation({ summary: 'REQ-PY-5/REQ-PY-20: List all irregularities with optional filters' })
@@ -383,7 +383,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get('irregularities/:id')
 	@ApiOperation({ summary: 'Get a single irregularity by ID' })
@@ -394,7 +394,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST)
 	@Post('irregularities/:id/escalate')
 	@ApiOperation({ summary: 'REQ-PY-20: Escalate an irregularity to manager for resolution' })
@@ -410,7 +410,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.HR_MANAGER, SystemRole.PAYROLL_MANAGER)
 	@Post('irregularities/:id/resolve')
 	@ApiOperation({ summary: 'REQ-PY-20: Resolve an escalated irregularity (Manager only)' })
@@ -434,7 +434,7 @@ export class PayrollExecutionController {
 		return result;
 	}
 
-	//@UseGuards(AuthenticationGuard, AuthorizationGuard)
+	@UseGuards(AuthenticationGuard, AuthorizationGuard)
 	@Roles(SystemRole.PAYROLL_SPECIALIST, SystemRole.HR_MANAGER, SystemRole.FINANCE_STAFF, SystemRole.PAYROLL_MANAGER)
 	@Get(':id/irregularities')
 	@ApiOperation({ summary: 'Get all irregularities for a specific payroll run' })

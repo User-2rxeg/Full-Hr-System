@@ -49,7 +49,7 @@ export function HeroSection() {
 
           {/* Arabic Headline */}
           <h2 className="mb-10 text-3xl sm:text-5xl font-bold bg-gradient-to-r from-slate-600 via-slate-800 to-black dark:from-slate-400 dark:via-slate-200 dark:to-white bg-clip-text text-transparent leading-tight py-2 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 font-arabic">
-              شايف نفسك فين بعد خمس سنين؟
+              شايف نفسك فين بعد ٥ سنين؟
           </h2>
 
           {/* Subheading */}

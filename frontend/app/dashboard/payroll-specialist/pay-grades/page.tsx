@@ -383,7 +383,7 @@ export default function PayGradesPage() {
 
         {filtered.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="text-muted-foreground text-4xl mb-4">🏷️</div>
+            <div className="text-muted-foreground text-4xl mb-4"></div>
             <p className="text-foreground font-medium">
               {filter !== "all" ? `No ${filter.toLowerCase()} pay grades found` : "No pay grades found"}
             </p>

@@ -416,20 +416,24 @@ export default function RefundsPage() {
                   <option value="">Select a {refundType}</option>
                   {refundType === 'dispute'
                     ? approvedDisputes.map(d => (
-                      <option key={d.id} value={d.id}>{d.id} - {d.employeeName} (${d.amount})</option>
+                      <option key={d.id} value={d.id}>
+                        {getEmployeeName(d.employeeId)} - {d.description ? (d.description.length > 30 ? d.description.substring(0, 30) + '...' : d.description) : 'No description'} (${d.amount})
+                      </option>
                     ))
                     : approvedClaims.map(c => (
-                      <option key={c.id} value={c.id}>{c.id} - {c.employeeName} (${c.amount})</option>
+                      <option key={c.id} value={c.id}>
+                        {getEmployeeName(c.employeeId)} - {c.description ? (c.description.length > 30 ? c.description.substring(0, 30) + '...' : c.description) : 'No description'} (${c.amount})
+                      </option>
                     ))
                   }
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Employee ID</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Employee</label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 border border-border bg-muted/30 rounded-xl outline-none cursor-not-allowed text-muted-foreground"
-                  value={refundEmployeeId}
+                  value={refundEmployeeId ? getEmployeeName(refundEmployeeId) : ''}
                   readOnly
                   placeholder="Fetched automatically"
                 />
@@ -514,7 +518,7 @@ export default function RefundsPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Source Reference</label>
-                <p className="text-foreground mt-1 text-sm">{selectedRefund.claimId ? `Claim ID: ...${safeString(selectedRefund.claimId).slice(-8)}` : selectedRefund.disputeId ? `Dispute ID: ...${safeString(selectedRefund.disputeId).slice(-8)}` : 'N/A'}</p>
+                <p className="text-foreground mt-1 text-sm">{selectedRefund.claimId ? `Claim: ${safeString(selectedRefund.claimId).substring(0, 8)}...` : selectedRefund.disputeId ? `Dispute: ${safeString(selectedRefund.disputeId).substring(0, 8)}...` : 'N/A'}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Description</label>
@@ -533,13 +537,13 @@ export default function RefundsPage() {
               {selectedRefund.financeStaffId && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Processed By</label>
-                  <p className="text-foreground mt-1 text-sm">Staff ID: ...{safeString(selectedRefund.financeStaffId).slice(-8)}</p>
+                  <p className="text-foreground mt-1 text-sm">{getEmployeeName(selectedRefund.financeStaffId)}</p>
                 </div>
               )}
               {selectedRefund.paidInPayrollRunId && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Paid in Payroll Run</label>
-                  <p className="text-foreground mt-1 text-sm">Run ID: ...{safeString(selectedRefund.paidInPayrollRunId).slice(-8)}</p>
+                  <p className="text-foreground mt-1 text-sm">Run: {safeString(selectedRefund.paidInPayrollRunId).substring(0, 8)}...</p>
                 </div>
               )}
               {selectedRefund.status === 'pending' && (
