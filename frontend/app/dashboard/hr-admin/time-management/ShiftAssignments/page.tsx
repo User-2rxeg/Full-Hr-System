@@ -86,7 +86,7 @@ export default function ShiftAssignmentsPage() {
         timeManagementService.getAllAssignments(),
         timeManagementService.getShifts(),
         timeManagementService.getScheduleRules(),
-        employeeProfileService.getAllEmployees(1, 500) as Promise<any>,
+        employeeProfileService.getAllEmployees(1, 100) as Promise<any>,
         organizationStructureService.getDepartments().catch(() => ({ data: [] })),
         organizationStructureService.getPositions().catch(() => ({ data: [] })),
       ]);

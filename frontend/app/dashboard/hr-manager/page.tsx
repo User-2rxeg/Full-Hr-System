@@ -83,7 +83,7 @@ export default function HRManagerPage() {
         offersRes,
         onboardingsRes,
       ] = await Promise.all([
-        employeeProfileService.getAllEmployees(1, 1).catch(() => ({ data: null, error: null })),
+        employeeProfileService.getAllEmployees(1, 100).catch(() => ({ data: [], error: null })),
         performanceService.getCycles().catch(() => ({ data: [] })),
         getRecruitmentDashboard().catch(() => null),
         getApplications().catch(() => []),

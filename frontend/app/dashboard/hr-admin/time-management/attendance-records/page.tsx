@@ -145,7 +145,7 @@ export default function AttendanceRecordsPage() {
   const fetchEmployees = useCallback(async () => {
     try {
       setLoadingEmployees(true);
-      const response = await employeeProfileService.getAllEmployees(1, 500) as any;
+      const response = await employeeProfileService.getAllEmployees(1, 100) as any;
       const data = response?.data?.data || response?.data || response || [];
 
       if (Array.isArray(data)) {

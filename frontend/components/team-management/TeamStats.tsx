@@ -182,7 +182,7 @@ export default function TeamStats({ members, loading }: TeamStatsProps) {
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-accent to-accent/70 rounded-full transition-all duration-500"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
