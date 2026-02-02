@@ -32,7 +32,7 @@ import { HolidayService } from '../../time-management/services/HolidayService';
  * UnifiedLeaveService
  *
  * Comprehensive leave management service implementing all 42 requirements
- * from leaves-requirements document.
+ * from leaves.requirements document.
  *
  * Key Integrations:
  * - EmployeeProfileService: Access employee data, tenure, contract types (REQ-003, REQ-008, REQ-015)

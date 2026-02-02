@@ -20,7 +20,7 @@ import { TimeManagementModule } from "../time-management/time-management.module"
 /**
  * LeavesModule - Comprehensive Leave Management System
  *
- * Implements all 42 requirements from leaves-requirements document:
+ * Implements all 42 requirements from leaves.requirements document:
  * - Phase 1: Policy Configuration (REQ-001 to REQ-014)
  * - Phase 2: Leave Request Workflow (REQ-015 to REQ-031)
  * - Phase 3: Tracking & Integration (REQ-031 to REQ-042)
