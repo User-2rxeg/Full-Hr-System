@@ -139,9 +139,9 @@ export default function FeedbackPage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">{error}</p>
-        <button onClick={fetchInterviews} className="mt-2 text-red-600 underline hover:text-red-800">
+      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+        <p className="text-destructive">{error}</p>
+        <button onClick={fetchInterviews} className="mt-2 text-destructive underline hover:text-destructive">
           Retry
         </button>
       </div>
@@ -151,16 +151,16 @@ export default function FeedbackPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Interview Feedback</h1>
-        <p className="text-gray-600 mt-1">Submit feedback for completed interviews</p>
+        <h1 className="text-2xl font-bold text-foreground">Interview Feedback</h1>
+        <p className="text-muted-foreground mt-1">Submit feedback for completed interviews</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Interview List */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="bg-white rounded-lg border border-border p-4">
           <h2 className="text-lg font-semibold mb-4">Your Completed Interviews</h2>
           {interviews.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               No completed interviews requiring feedback
             </div>
           ) : (
@@ -172,36 +172,36 @@ export default function FeedbackPage() {
                     key={interview.id}
                     onClick={() => setSelectedInterview(interview)}
                     className={`w-full text-left p-4 rounded-lg border transition-colors ${selectedInterview?.id === interview.id
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary bg-primary/10'
                       : needsFeedback
-                        ? 'border-gray-300 hover:border-blue-300 hover:bg-gray-50'
-                        : 'border-gray-200 bg-gray-50 opacity-75'
+                        ? 'border-border hover:border-primary/30 hover:bg-muted'
+                        : 'border-border bg-muted opacity-75'
                       }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-foreground">
                         {getStageLabel(interview.stage)}
                       </div>
                       {needsFeedback && (
-                        <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                        <span className="px-2 py-1 text-xs bg-muted text-muted-foreground rounded-full">
                           Pending
                         </span>
                       )}
                       {!needsFeedback && selectedInterview?.id === interview.id && (
-                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                        <span className="px-2 py-1 text-xs bg-accent/10 text-accent-foreground rounded-full">
                           Submitted
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-gray-900 font-medium">
+                    <div className="text-sm text-foreground font-medium">
                       {interview.jobTitle || `Application #${interview.applicationId}`}
                     </div>
                     {interview.candidateName && (
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-muted-foreground">
                         {interview.candidateName}
                       </div>
                     )}
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-muted-foreground">
                       {new Date(interview.scheduledDate).toLocaleDateString()}
                     </div>
                   </button>
@@ -212,41 +212,41 @@ export default function FeedbackPage() {
         </div>
 
         {/* Feedback Form */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="bg-white rounded-lg border border-border p-4">
           <h2 className="text-lg font-semibold mb-4">Submit Feedback</h2>
           {!selectedInterview ? (
-            <div className="text-center py-16 text-gray-500">
+            <div className="text-center py-16 text-muted-foreground">
               Select an interview to provide feedback
             </div>
           ) : hasSubmittedFeedback(selectedInterview.id) ? (
             <div className="text-center py-16">
-              <div className="text-green-600 mb-2">✓ Feedback Submitted</div>
-              <div className="text-gray-500">You have already submitted feedback for this interview</div>
+              <div className="text-accent-foreground mb-2">✓ Feedback Submitted</div>
+              <div className="text-muted-foreground">You have already submitted feedback for this interview</div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <div className="mb-2 text-sm text-gray-600">
+                <div className="mb-2 text-sm text-muted-foreground">
                   <strong>Candidate:</strong> {selectedInterview.candidateName || 'Unknown'}
                 </div>
-                <div className="mb-2 text-sm text-gray-600">
+                <div className="mb-2 text-sm text-muted-foreground">
                   <strong>Position:</strong> {selectedInterview.jobTitle || 'Unknown'}
                 </div>
-                <div className="mb-2 text-sm text-gray-600">
+                <div className="mb-2 text-sm text-muted-foreground">
                   <strong>Interview:</strong> {getStageLabel(selectedInterview.stage)}
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   <strong>Date:</strong> {new Date(selectedInterview.scheduledDate).toLocaleString()}
                 </div>
                 {selectedInterview.panel?.length > 0 && (
-                  <div className="mt-2 text-sm text-gray-600">
+                  <div className="mt-2 text-sm text-muted-foreground">
                     <strong>Panel:</strong> {selectedInterview.panel.length} member(s)
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Score * (1-10)
                 </label>
                 <div className="flex items-center space-x-4">
@@ -260,18 +260,18 @@ export default function FeedbackPage() {
                     className="flex-1"
                   />
                   <div className="w-12 text-center">
-                    <span className="text-2xl font-bold text-blue-600">{score}</span>
-                    <div className="text-xs text-gray-500">/ 10</div>
+                    <span className="text-2xl font-bold text-primary">{score}</span>
+                    <div className="text-xs text-muted-foreground">/ 10</div>
                   </div>
                 </div>
-                <div className="mt-2 flex justify-between text-xs text-gray-500">
+                <div className="mt-2 flex justify-between text-xs text-muted-foreground">
                   <span>Poor</span>
                   <span>Excellent</span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Comments (Optional)
                 </label>
                 <textarea
@@ -279,16 +279,16 @@ export default function FeedbackPage() {
                   onChange={(e) => setComments(e.target.value)}
                   rows={6}
                   placeholder="Provide detailed feedback about the candidate's performance, skills, and fit for the role..."
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-border rounded-md px-3 py-2 text-sm"
                 />
               </div>
 
               {existingFeedback.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                  <div className="text-sm font-medium text-blue-900 mb-1">
+                <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
+                  <div className="text-sm font-medium text-foreground mb-1">
                     Other Panel Feedback
                   </div>
-                  <div className="text-sm text-blue-700">
+                  <div className="text-sm text-primary">
                     {existingFeedback.length} panel member(s) have submitted feedback
                   </div>
                 </div>
@@ -298,7 +298,7 @@ export default function FeedbackPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedInterview(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancel
                 </button>

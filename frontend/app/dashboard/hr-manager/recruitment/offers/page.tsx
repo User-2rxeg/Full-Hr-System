@@ -378,13 +378,13 @@ export default function OffersPage() {
   const getStatusBadge = (status: OfferDisplay['status']) => {
     // Black/White theme styles
     const styles: Record<OfferDisplay['status'], string> = {
-      pending_approval: 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700',
-      approved: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-400 dark:border-slate-600',
-      rejected: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-400 dark:border-slate-600',
-      sent: 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700',
-      signed: 'bg-slate-700 dark:bg-slate-300 text-white dark:text-black border border-slate-800 dark:border-slate-400 font-semibold',
+      pending_approval: 'bg-white dark:bg-card text-foreground dark:text-muted-foreground border border-border dark:border-border',
+      approved: 'bg-muted dark:bg-card text-foreground dark:text-foreground border border-border dark:border-border',
+      rejected: 'bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground border border-border dark:border-border',
+      sent: 'bg-muted dark:bg-card text-foreground dark:text-muted-foreground border border-border dark:border-border',
+      signed: 'bg-muted dark:bg-card text-white dark:text-black border border-slate-800 dark:border-border font-semibold',
       accepted: 'bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white font-bold',
-      declined: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-400 dark:border-slate-600',
+      declined: 'bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground border border-border dark:border-border',
     };
     const labels: Record<OfferDisplay['status'], string> = {
       pending_approval: 'Pending Approval',
@@ -433,15 +433,15 @@ export default function OffersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-            <Link href="/dashboard/hr-manager/recruitment" className="hover:text-slate-700">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <Link href="/dashboard/hr-manager/recruitment" className="hover:text-foreground">
               Recruitment
             </Link>
             <span>/</span>
             <span>Offers</span>
           </div>
-          <h1 className="text-2xl font-semibold text-slate-900">Offer Approvals</h1>
-          <p className="text-sm text-slate-500 mt-1">Review and approve job offers (BR-26)</p>
+          <h1 className="text-2xl font-semibold text-foreground">Offer Approvals</h1>
+          <p className="text-sm text-muted-foreground mt-1">Review and approve job offers (BR-26)</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowLogsPanel(!showLogsPanel)}>
@@ -457,42 +457,42 @@ export default function OffersPage() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
           // Black/White theme - using opacity and borders for distinction
-          { label: 'Pending', count: offers.filter((o) => o.status === 'pending_approval').length, color: 'bg-slate-200 dark:bg-slate-700' },
-          { label: 'Approved', count: offers.filter((o) => o.status === 'approved').length, color: 'bg-slate-400 dark:bg-slate-600' },
-          { label: 'Sent', count: offers.filter((o) => o.status === 'sent').length, color: 'bg-slate-500 dark:bg-slate-500' },
-          { label: 'Signed', count: offers.filter((o) => o.status === 'signed').length, color: 'bg-slate-700 dark:bg-slate-300' },
+          { label: 'Pending', count: offers.filter((o) => o.status === 'pending_approval').length, color: 'bg-muted dark:bg-muted' },
+          { label: 'Approved', count: offers.filter((o) => o.status === 'approved').length, color: 'bg-slate-400 dark:bg-card' },
+          { label: 'Sent', count: offers.filter((o) => o.status === 'sent').length, color: 'bg-muted0 dark:bg-muted0' },
+          { label: 'Signed', count: offers.filter((o) => o.status === 'signed').length, color: 'bg-muted dark:bg-card' },
           { label: 'Accepted', count: offers.filter((o) => o.status === 'accepted').length, color: 'bg-black dark:bg-white' },
-          { label: 'Rejected', count: offers.filter((o) => o.status === 'rejected' || o.status === 'declined').length, color: 'bg-slate-300 dark:bg-slate-600' },
+          { label: 'Rejected', count: offers.filter((o) => o.status === 'rejected' || o.status === 'declined').length, color: 'bg-slate-300 dark:bg-card' },
         ].map((stat) => (
           <div
             key={stat.label}
-            className={`bg-white rounded-lg border border-slate-200 p-4 cursor-pointer hover:shadow-md transition-shadow ${filter === stat.label.toLowerCase() ? 'ring-2 ring-blue-500' : ''
+            className={`bg-white rounded-lg border border-border p-4 cursor-pointer hover:shadow-md transition-shadow ${filter === stat.label.toLowerCase() ? 'ring-2 ring-blue-500' : ''
               }`}
             onClick={() => setFilter(stat.label.toLowerCase())}
           >
             <div className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${stat.color}`}></div>
-              <span className="text-sm text-slate-600">{stat.label}</span>
+              <span className="text-sm text-muted-foreground">{stat.label}</span>
             </div>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{stat.count}</p>
+            <p className="text-2xl font-bold text-foreground mt-1">{stat.count}</p>
           </div>
         ))}
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 overflow-x-auto">
+      <div className="flex gap-2 border-b border-border overflow-x-auto">
         {['all', 'pending', 'approved', 'sent', 'signed', 'accepted', 'rejected'].map((tab) => (
           <button
             key={tab}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${filter === tab
               ? 'border-black dark:border-white text-black dark:text-white'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+              : 'border-transparent text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-muted-foreground'
               }`}
             onClick={() => setFilter(tab)}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
             {tab === 'pending' && pendingCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full border border-slate-300 dark:border-slate-600">
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-muted dark:bg-muted text-foreground dark:text-muted-foreground rounded-full border border-border dark:border-border">
                 {pendingCount}
               </span>
             )}
@@ -507,10 +507,10 @@ export default function OffersPage() {
           {filteredOffers.length === 0 ? (
             <Card>
               <div className="text-center py-12">
-                <svg className="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-12 h-12 text-muted-foreground mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <p className="text-slate-500">No offers found</p>
+                <p className="text-muted-foreground">No offers found</p>
               </div>
             </Card>
           ) : (
@@ -520,11 +520,11 @@ export default function OffersPage() {
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-slate-900">{offer.candidateName}</h3>
+                        <h3 className="text-lg font-semibold text-foreground">{offer.candidateName}</h3>
                         {getStatusBadge(offer.status)}
                       </div>
-                      <p className="text-sm text-slate-600 mb-2">{offer.candidateEmail}</p>
-                      <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+                      <p className="text-sm text-muted-foreground mb-2">{offer.candidateEmail}</p>
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -551,12 +551,12 @@ export default function OffersPage() {
                         </span>
                       </div>
                       {offer.signingBonus && offer.signingBonus > 0 && (
-                        <p className="mt-2 text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded inline-block">
+                        <p className="mt-2 text-sm text-accent-foreground bg-accent/10 px-3 py-1 rounded inline-block">
                           Signing Bonus: {formatCurrency(offer.signingBonus)}
                         </p>
                       )}
                       {offer.rejectionReason && (
-                        <p className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded">
+                        <p className="mt-2 text-sm text-destructive bg-destructive/10 px-3 py-1 rounded">
                           Reason: {offer.rejectionReason}
                         </p>
                       )}
@@ -599,7 +599,7 @@ export default function OffersPage() {
                           size="sm"
                           onClick={() => handleTriggerPreboarding(offer)}
                           disabled={triggeringPreboarding === offer.id}
-                          className="bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 border border-black dark:border-white"
+                          className="bg-black dark:bg-white text-white dark:text-black hover:bg-card dark:hover:bg-muted border border-black dark:border-white"
                         >
                           {triggeringPreboarding === offer.id ? (
                             <>
@@ -630,7 +630,7 @@ export default function OffersPage() {
                   </div>
 
                   {/* Meta */}
-                  <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400">
+                  <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
                     <span>Created: {formatDate(offer.createdAt)}</span>
                     {offer.approvers && offer.approvers.length > 0 && (
                       <>
@@ -659,13 +659,13 @@ export default function OffersPage() {
             <Card>
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {logs.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-4">No logs available</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">No logs available</p>
                 ) : (
                   logs.map((log) => (
-                    <div key={log.id} className="flex gap-3 p-3 bg-slate-50 rounded-lg">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${log.type === 'email' ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700' :
-                        log.type === 'system' ? 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border-slate-400 dark:border-slate-600' :
-                        'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'
+                    <div key={log.id} className="flex gap-3 p-3 bg-muted rounded-lg">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${log.type === 'email' ? 'bg-muted dark:bg-card text-foreground dark:text-muted-foreground border-border dark:border-border' :
+                        log.type === 'system' ? 'bg-muted dark:bg-muted text-foreground dark:text-foreground border-border dark:border-border' :
+                        'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border'
                       }`}>
                         {log.type === 'email' ? (
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -682,8 +682,8 @@ export default function OffersPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-700">{log.message}</p>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                        <p className="text-sm text-foreground">{log.message}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                           <span>{log.user}</span>
                           <span>•</span>
                           <span>{log.timestamp}</span>
@@ -705,29 +705,29 @@ export default function OffersPage() {
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowApprovalModal(false)} />
             <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-400 dark:border-slate-600">
-                  <svg className="w-6 h-6 text-slate-800 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-muted dark:bg-muted rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-border dark:border-border">
+                  <svg className="w-6 h-6 text-foreground dark:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">Approve Offer</h3>
-                <p className="text-sm text-slate-600 mb-4">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Approve Offer</h3>
+                <p className="text-sm text-muted-foreground mb-4">
                   Are you sure you want to approve the offer for <strong>{selectedOffer.candidateName}</strong>
                   for the position of <strong>{selectedOffer.jobTitle}</strong>?
                 </p>
-                <div className="bg-slate-50 rounded-lg p-3 mb-6 text-sm text-left">
+                <div className="bg-muted rounded-lg p-3 mb-6 text-sm text-left">
                   <div className="flex justify-between mb-1">
-                    <span className="text-slate-500">Salary</span>
+                    <span className="text-muted-foreground">Salary</span>
                     <span className="font-medium">{formatCurrency(selectedOffer.salary)}/month</span>
                   </div>
                   {selectedOffer.signingBonus && selectedOffer.signingBonus > 0 && (
                     <div className="flex justify-between mb-1">
-                      <span className="text-slate-500">Signing Bonus</span>
-                      <span className="font-medium text-slate-800 dark:text-slate-200">{formatCurrency(selectedOffer.signingBonus)}</span>
+                      <span className="text-muted-foreground">Signing Bonus</span>
+                      <span className="font-medium text-foreground dark:text-foreground">{formatCurrency(selectedOffer.signingBonus)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Deadline</span>
+                    <span className="text-muted-foreground">Deadline</span>
                     <span className="font-medium">{formatDate(selectedOffer.deadline)}</span>
                   </div>
                 </div>
@@ -752,17 +752,17 @@ export default function OffersPage() {
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowRejectModal(false)} />
             <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-400 dark:border-slate-600">
-                  <svg className="w-6 h-6 text-slate-800 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-muted dark:bg-muted rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-border dark:border-border">
+                  <svg className="w-6 h-6 text-foreground dark:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">Reject Offer</h3>
-                <p className="text-sm text-slate-600 mb-4">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Reject Offer</h3>
+                <p className="text-sm text-muted-foreground mb-4">
                   Please provide a reason for rejecting this offer for <strong>{selectedOffer.candidateName}</strong>.
                 </p>
                 <textarea
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+                  className="w-full px-4 py-3 border border-border rounded-lg text-foreground placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
                   rows={3}
                   placeholder="Enter rejection reason..."
                   value={rejectionReason}
@@ -789,38 +789,38 @@ export default function OffersPage() {
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowPreboardingModal(false)} />
             <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
               <div className="text-center">
-                <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-400 dark:border-slate-600">
-                  <svg className="w-6 h-6 text-slate-800 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-muted dark:bg-muted rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-border dark:border-border">
+                  <svg className="w-6 h-6 text-foreground dark:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">Trigger Pre-boarding</h3>
-                <p className="text-sm text-slate-600 mb-4">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Trigger Pre-boarding</h3>
+                <p className="text-sm text-muted-foreground mb-4">
                   Start the onboarding process for <strong>{preboardingOffer.candidateName}</strong>?
                 </p>
-                <div className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-4 mb-6 text-left">
-                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">This will initiate:</h4>
-                  <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                <div className="bg-muted dark:bg-card border border-border dark:border-border rounded-lg p-4 mb-6 text-left">
+                  <h4 className="font-medium text-foreground dark:text-foreground mb-2">This will initiate:</h4>
+                  <ul className="text-sm text-foreground dark:text-muted-foreground space-y-1">
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       Employment contract preparation
                     </li>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       Document collection requests
                     </li>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       IT equipment setup tasks
                     </li>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       Welcome email to candidate

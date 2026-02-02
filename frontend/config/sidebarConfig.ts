@@ -74,21 +74,7 @@ const SELF_SERVICE_SECTION: NavSection = {
       href: '/portal/my-career',
       icon: 'compass',
     },
-    {
-      label: 'My Payslips',
-      href: '/portal/my-payslips',
-      icon: 'dollar-sign',
-    },
-    {
-      label: 'My Benefits',
-      href: '/portal/my-benefits',
-      icon: 'shield',
-    },
-    {
-      label: 'My Expenses',
-      href: '/portal/my-expenses',
-      icon: 'credit-card',
-    },
+
     {
       label: 'Organization',
       href: '/portal/my-organization',

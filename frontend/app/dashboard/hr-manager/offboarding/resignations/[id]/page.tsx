@@ -105,13 +105,13 @@ export default function ResignationDetailPage() {
   const getStatusBadge = (status: TerminationStatus) => {
     switch (status) {
       case TerminationStatus.PENDING:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800';
+        return 'bg-muted text-muted-foreground border-border';
       case TerminationStatus.UNDER_REVIEW:
-        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
+        return 'bg-primary/10 text-primary border-primary/20';
       case TerminationStatus.APPROVED:
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800';
+        return 'bg-accent/10 text-accent-foreground border-accent/20';
       case TerminationStatus.REJECTED:
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
+        return 'bg-destructive/10 text-destructive border-destructive/20';
       default:
         return 'bg-muted text-muted-foreground border-border';
     }
@@ -207,7 +207,7 @@ export default function ResignationDetailPage() {
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">Type</dt>
                 <dd className="mt-1 text-foreground">
-                  {isResignation ? 'Employee Resignation' : `${request.initiator.toUpperCase()} Initiated Termination`}
+                  {isResignation ? 'Employee Resignation' : `${(request.initiator || 'Unknown').toUpperCase()} Initiated Termination`}
                 </dd>
               </div>
               <div>
@@ -240,11 +240,11 @@ export default function ResignationDetailPage() {
           </div>
 
           {request.performanceWarnings && request.performanceWarnings.length > 0 && (
-            <div className="bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-900/30 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-orange-900 dark:text-orange-300 mb-4">Performance Warnings</h2>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-destructive mb-4">Performance Warnings</h2>
               <ul className="space-y-2">
                 {request.performanceWarnings.map((warning, index) => (
-                  <li key={index} className="text-orange-800 dark:text-orange-400">{warning}</li>
+                  <li key={index} className="text-destructive/80">{warning}</li>
                 ))}
               </ul>
             </div>
@@ -316,7 +316,7 @@ export default function ResignationDetailPage() {
                       handleStatusUpdate(TerminationStatus.APPROVED, comments || undefined);
                     }}
                     disabled={updating}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                    className="w-full px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:opacity-50"
                   >
                     Approve Request
                   </button>
@@ -361,7 +361,7 @@ export default function ResignationDetailPage() {
                 <div key={item.step} className="flex items-center gap-3">
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                      item.completed ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'
+                      item.completed ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {item.completed ? '✓' : item.step}

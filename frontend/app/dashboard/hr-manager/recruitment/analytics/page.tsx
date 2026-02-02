@@ -29,6 +29,7 @@ import {
 } from '@/app/services/recruitment';
 import { analyticsService, OrgPulseResponse } from '@/app/services/analytics';
 import { JobTemplate, JobRequisition, Application, Interview } from '@/types/recruitment';
+import { Briefcase, Users, Clock, CheckCircle2 } from 'lucide-react';
 
 // ==================== INTERFACES ====================
 interface DashboardData {
@@ -75,10 +76,10 @@ interface TimeToHireData {
 
 // ==================== STAGE MAPPING ====================
 const STAGE_CONFIG: Record<string, { name: string; color: string; order: number }> = {
-  'screening': { name: 'Screening', color: 'bg-blue-500', order: 1 },
-  'department_interview': { name: 'Dept Interview', color: 'bg-emerald-500', order: 2 },
+  'screening': { name: 'Screening', color: 'bg-primary/100', order: 1 },
+  'department_interview': { name: 'Dept Interview', color: 'bg-accent/100', order: 2 },
   'hr_interview': { name: 'HR Interview', color: 'bg-cyan-500', order: 3 },
-  'offer': { name: 'Offer', color: 'bg-amber-500', order: 4 },
+  'offer': { name: 'Offer', color: 'bg-muted0', order: 4 },
 };
 
 // ==================== DATE HELPERS ====================
@@ -159,7 +160,7 @@ export default function RecruitmentAnalyticsPage() {
         getInterviews(),
       ]);
 
-      console.log('📊 Analytics Data Loaded:', {
+      console.log('Analytics Data Loaded:', {
         dashboardData,
         jobsCount: jobs.length,
         templatesCount: templates.length,
@@ -239,7 +240,7 @@ export default function RecruitmentAnalyticsPage() {
       return inDateRange;
     });
 
-    console.log('🔍 Filtered Applications:', {
+    console.log('Filtered Applications:', {
       totalApps: applications.length,
       filteredCount: filteredApps.length,
       dateRange: { start, end },
@@ -305,7 +306,7 @@ export default function RecruitmentAnalyticsPage() {
       stageCount[stage] = (stageCount[stage] || 0) + 1;
     });
 
-    console.log('📈 Pipeline Stage Counts:', {
+    console.log('Pipeline Stage Counts:', {
       stageCount,
       STAGE_CONFIG_keys: Object.keys(STAGE_CONFIG),
       sampleStages: filteredApps.slice(0, 5).map(a => a.currentStage),
@@ -321,7 +322,7 @@ export default function RecruitmentAnalyticsPage() {
         color: config.color,
       }));
 
-    console.log('📊 Pipeline Data:', pipelineData);
+    console.log('Pipeline Data:', pipelineData);
 
     setPipeline(pipelineData);
 
@@ -486,7 +487,7 @@ export default function RecruitmentAnalyticsPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-red-600 mb-4">{error}</p>
+        <p className="text-destructive mb-4">{error}</p>
         <Button onClick={fetchData}>Retry</Button>
       </div>
     );
@@ -497,7 +498,7 @@ export default function RecruitmentAnalyticsPage() {
       {/* Print Header - Only visible when printing */}
       <div className="hidden print:block mb-6">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Recruitment Analytics Report</h1>
-        <div className="flex justify-between text-sm text-slate-600 border-b border-slate-300 pb-2">
+        <div className="flex justify-between text-sm text-muted-foreground border-b border-slate-300 pb-2">
           <div>
             <p><strong>Generated:</strong> {new Date().toLocaleString()}</p>
             <p><strong>Date Range:</strong> {dateFilter === 'all' ? 'All Time' : dateFilter}</p>
@@ -513,15 +514,15 @@ export default function RecruitmentAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:mb-4">
         <div>
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-2 print:hidden">
-            <Link href="/dashboard/hr-manager/recruitment" className="hover:text-slate-700">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2 print:hidden">
+            <Link href="/dashboard/hr-manager/recruitment" className="hover:text-foreground">
               Recruitment
             </Link>
             <span>/</span>
             <span>Analytics</span>
           </div>
           <h1 className="text-2xl font-semibold text-slate-900 print:hidden">Recruitment Analytics</h1>
-          <p className="text-sm text-slate-500 mt-1 print:hidden">Monitor recruitment progress and metrics (BR-33)</p>
+          <p className="text-sm text-muted-foreground mt-1 print:hidden">Monitor recruitment progress and metrics (BR-33)</p>
         </div>
         <div className="flex gap-2 no-print">
           <Button variant="outline" onClick={exportToCSV}>
@@ -548,7 +549,7 @@ export default function RecruitmentAnalyticsPage() {
       {/* Filters (BR-33) */}
       <div className="flex flex-wrap gap-4 no-print">
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Date Range</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Date Range</label>
           <select
             className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={dateFilter}
@@ -562,7 +563,7 @@ export default function RecruitmentAnalyticsPage() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Department</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Department</label>
           <select
             className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={departmentFilter}
@@ -579,32 +580,48 @@ export default function RecruitmentAnalyticsPage() {
 
       {/* KPI Cards (BR-33) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="text-center">
-            <span className="text-2xl">📋</span>
-            <p className="text-2xl font-bold mt-1 text-blue-600">{analytics?.openJobs || 0}</p>
-            <p className="text-xs text-slate-500 mt-1">Open Jobs</p>
+        <Card className="p-4 border-l-4 border-l-primary">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-2xl font-bold text-foreground">{analytics?.openJobs || 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">Open Jobs</p>
+            </div>
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Briefcase className="h-5 w-5 text-primary" />
+            </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <span className="text-2xl">👥</span>
-            <p className="text-2xl font-bold mt-1 text-emerald-600">{analytics?.activeCandidates || 0}</p>
-            <p className="text-xs text-slate-500 mt-1">Active Candidates</p>
+        <Card className="p-4 border-l-4 border-l-accent">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-2xl font-bold text-foreground">{analytics?.activeCandidates || 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">Active Candidates</p>
+            </div>
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <Users className="h-5 w-5 text-accent-foreground" />
+            </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <span className="text-2xl">⏱️</span>
-            <p className="text-2xl font-bold mt-1 text-amber-600">{analytics?.avgTimeToHire || 0}d</p>
-            <p className="text-xs text-slate-500 mt-1">Avg. Time to Hire</p>
+        <Card className="p-4 border-l-4 border-l-muted-foreground/50">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-2xl font-bold text-foreground">{analytics?.avgTimeToHire || 0}d</p>
+              <p className="text-xs text-muted-foreground mt-1">Avg. Time to Hire</p>
+            </div>
+            <div className="p-2 bg-muted rounded-lg">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+            </div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <span className="text-2xl">✅</span>
-            <p className="text-2xl font-bold mt-1 text-purple-600">{analytics?.hiredThisMonth || 0}</p>
-            <p className="text-xs text-slate-500 mt-1">Hired (Period)</p>
+        <Card className="p-4 border-l-4 border-l-accent">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-2xl font-bold text-foreground">{analytics?.hiredThisMonth || 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">Hired (Period)</p>
+            </div>
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <CheckCircle2 className="h-5 w-5 text-accent-foreground" />
+            </div>
           </div>
         </Card>
       </div>
@@ -615,7 +632,7 @@ export default function RecruitmentAnalyticsPage() {
         <Card>
           <div className="mb-4">
             <h3 className="font-semibold text-slate-900">Pipeline by Stage</h3>
-            <p className="text-sm text-slate-500">Current distribution across hiring stages</p>
+            <p className="text-sm text-muted-foreground">Current distribution across hiring stages</p>
           </div>
           <div className="space-y-4">
             {/* Horizontal Bar */}
@@ -635,7 +652,7 @@ export default function RecruitmentAnalyticsPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex h-8 rounded-lg overflow-hidden bg-slate-100 items-center justify-center">
+              <div className="flex h-8 rounded-lg overflow-hidden bg-muted items-center justify-center">
                 <span className="text-sm text-slate-400">No applications in pipeline</span>
               </div>
             )}
@@ -643,10 +660,10 @@ export default function RecruitmentAnalyticsPage() {
             {/* Legend */}
             <div className="grid grid-cols-2 gap-3">
               {pipeline.map((stage) => (
-                <div key={stage.name} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                <div key={stage.name} className="flex items-center justify-between p-2 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
                     <span className={`w-3 h-3 rounded-full ${stage.color}`}></span>
-                    <span className="text-sm text-slate-700">{stage.name}</span>
+                    <span className="text-sm text-foreground">{stage.name}</span>
                   </div>
                   <span className="text-sm font-semibold text-slate-900">{stage.count}</span>
                 </div>
@@ -655,7 +672,7 @@ export default function RecruitmentAnalyticsPage() {
 
             {/* Total */}
             <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-              <span className="text-sm font-medium text-slate-600">Total Applications</span>
+              <span className="text-sm font-medium text-muted-foreground">Total Applications</span>
               <span className="text-lg font-bold text-slate-900">
                 {pipeline.reduce((sum, s) => sum + s.count, 0)}
               </span>
@@ -667,18 +684,18 @@ export default function RecruitmentAnalyticsPage() {
         <Card>
           <div className="mb-4">
             <h3 className="font-semibold text-slate-900">Time-to-Hire Trend</h3>
-            <p className="text-sm text-slate-500">Average days to hire by month</p>
+            <p className="text-sm text-muted-foreground">Average days to hire by month</p>
           </div>
           <div className="space-y-4">
             {/* Bar Chart */}
             <div className="flex items-end justify-between h-40 gap-2">
               {timeToHire.map((item) => (
                 <div key={item.month} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-xs font-medium text-slate-600">
+                  <span className="text-xs font-medium text-muted-foreground">
                     {item.days > 0 ? `${item.days}d` : '-'}
                   </span>
                   <div
-                    className={`w-full rounded-t-md transition-all ${item.days > 0 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-slate-200'
+                    className={`w-full rounded-t-md transition-all ${item.days > 0 ? 'bg-primary/100 hover:bg-blue-600' : 'bg-slate-200'
                       }`}
                     style={{
                       height: item.days > 0 ? `${(item.days / maxTimeToHire) * 100}%` : '4px',
@@ -686,7 +703,7 @@ export default function RecruitmentAnalyticsPage() {
                     }}
                     title={`${item.month}: ${item.days}d (${item.count} hired)`}
                   ></div>
-                  <span className="text-xs text-slate-500">{item.month}</span>
+                  <span className="text-xs text-muted-foreground">{item.month}</span>
                 </div>
               ))}
             </div>
@@ -694,24 +711,24 @@ export default function RecruitmentAnalyticsPage() {
             {/* Summary */}
             <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-100">
               <div className="text-center">
-                <p className="text-lg font-bold text-emerald-600">
+                <p className="text-lg font-bold text-accent-foreground">
                   {timeToHire.filter(t => t.days > 0).length > 0
                     ? Math.min(...timeToHire.filter(t => t.days > 0).map(t => t.days))
                     : 0}d
                 </p>
-                <p className="text-xs text-slate-500">Best</p>
+                <p className="text-xs text-muted-foreground">Best</p>
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold text-slate-900">{analytics?.avgTimeToHire || 0}d</p>
-                <p className="text-xs text-slate-500">Average</p>
+                <p className="text-xs text-muted-foreground">Average</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-amber-600">
+                <p className="text-lg font-bold text-muted-foreground">
                   {timeToHire.filter(t => t.days > 0).length > 0
                     ? Math.max(...timeToHire.filter(t => t.days > 0).map(t => t.days))
                     : 0}d
                 </p>
-                <p className="text-xs text-slate-500">Longest</p>
+                <p className="text-xs text-muted-foreground">Longest</p>
               </div>
             </div>
           </div>
@@ -722,73 +739,73 @@ export default function RecruitmentAnalyticsPage() {
       <Card>
         <div className="mb-4">
           <h3 className="font-semibold text-slate-900">Job Performance Metrics</h3>
-          <p className="text-sm text-slate-500">Recruitment funnel by position</p>
+          <p className="text-sm text-muted-foreground">Recruitment funnel by position</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Position
                 </th>
-                <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Department
                 </th>
-                <th className="text-center py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-center py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Applicants
                 </th>
-                <th className="text-center py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-center py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Interviews
                 </th>
-                <th className="text-center py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-center py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Offers
                 </th>
-                <th className="text-center py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-center py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Hired
                 </th>
-                <th className="text-center py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-center py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Avg Days
                 </th>
-                <th className="text-center py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="text-center py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
               </tr>
             </thead>
             <tbody>
               {filteredJobMetrics.map((job, index) => (
-                <tr key={job.id || `job-${index}`} className="border-b border-slate-100 hover:bg-slate-50">
+                <tr key={job.id || `job-${index}`} className="border-b border-slate-100 hover:bg-muted">
                   <td className="py-3 px-4">
                     <span className="font-medium text-slate-900">{job.title}</span>
                   </td>
-                  <td className="py-3 px-4 text-sm text-slate-600">{job.department}</td>
+                  <td className="py-3 px-4 text-sm text-muted-foreground">{job.department}</td>
                   <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-medium">
                       {job.applicants}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-accent/10 text-accent-foreground rounded-full text-sm font-medium">
                       {job.interviews}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-muted text-muted-foreground rounded-full text-sm font-medium">
                       {job.offers}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-medium">
                       {job.hired}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-center text-sm text-slate-600">
+                  <td className="py-3 px-4 text-center text-sm text-muted-foreground">
                     {job.avgDays > 0 ? `${job.avgDays}d` : '-'}
                   </td>
                   <td className="py-3 px-4 text-center">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${job.status === 'open'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-slate-100 text-slate-600'
+                        ? 'bg-accent/10 text-accent-foreground'
+                        : 'bg-muted text-muted-foreground'
                         }`}
                     >
                       {job.status}
@@ -801,7 +818,7 @@ export default function RecruitmentAnalyticsPage() {
         </div>
 
         {filteredJobMetrics.length === 0 && (
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-muted-foreground">
             No jobs found for the selected filters
           </div>
         )}
@@ -810,15 +827,15 @@ export default function RecruitmentAnalyticsPage() {
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">Total Applications</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Applications</p>
           <p className="text-2xl font-bold text-slate-900 mt-1">{analytics?.totalApplications || 0}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">Interviews Scheduled</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Interviews Scheduled</p>
           <p className="text-2xl font-bold text-slate-900 mt-1">{analytics?.interviewsScheduled || 0}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">Conversion Rate</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Conversion Rate</p>
           <p className="text-2xl font-bold text-slate-900 mt-1">
             {analytics && analytics.totalApplications > 0
               ? `${Math.round((analytics.hiredThisMonth / analytics.totalApplications) * 100)}%`
@@ -826,7 +843,7 @@ export default function RecruitmentAnalyticsPage() {
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">Jobs in Pipeline</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Jobs in Pipeline</p>
           <p className="text-2xl font-bold text-slate-900 mt-1">{filteredJobMetrics.length}</p>
         </Card>
       </div>
@@ -834,7 +851,7 @@ export default function RecruitmentAnalyticsPage() {
       {/* Workforce Health Pulse (Data Science Addition) */}
       <div className="pt-8 border-t border-slate-200">
         <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
           Workforce Health Analytics
@@ -842,25 +859,25 @@ export default function RecruitmentAnalyticsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="p-6">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Current Workforce Pulse</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Current Workforce Pulse</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">Total Headcount</span>
+                <span className="text-sm text-muted-foreground">Total Headcount</span>
                 <span className="font-bold text-lg">{orgPulse?.headcount || '-'}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">Avg. Performance</span>
-                <span className="font-bold text-lg text-emerald-600">{orgPulse?.avgPerformanceScore?.toFixed(1) || '-'} / 5.0</span>
+                <span className="text-sm text-muted-foreground">Avg. Performance</span>
+                <span className="font-bold text-lg text-accent-foreground">{orgPulse?.avgPerformanceScore?.toFixed(1) || '-'} / 5.0</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">Active Appraisals</span>
-                <span className="font-bold text-lg text-blue-600">{orgPulse?.activeAppraisals || 0}</span>
+                <span className="text-sm text-muted-foreground">Active Appraisals</span>
+                <span className="font-bold text-lg text-primary">{orgPulse?.activeAppraisals || 0}</span>
               </div>
             </div>
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Gender Diversity</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Gender Diversity</h3>
             <div className="space-y-3">
               {orgPulse?.genderDiversity?.map((item) => (
                 <div key={item._id} className="space-y-1">
@@ -868,9 +885,9 @@ export default function RecruitmentAnalyticsPage() {
                     <span className="capitalize">{item._id} ({item.count})</span>
                     <span>{orgPulse.headcount > 0 ? Math.round((item.count / orgPulse.headcount) * 100) : 0}%</span>
                   </div>
-                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${item._id === 'male' ? 'bg-blue-500' : item._id === 'female' ? 'bg-pink-500' : 'bg-slate-400'}`}
+                      className={`h-full ${item._id === 'male' ? 'bg-primary/100' : item._id === 'female' ? 'bg-pink-500' : 'bg-slate-400'}`}
                       style={{ width: `${orgPulse.headcount > 0 ? (item.count / orgPulse.headcount) * 100 : 0}%` }}
                     />
                   </div>

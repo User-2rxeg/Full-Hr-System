@@ -82,6 +82,10 @@ import {AttendanceDailySummaryScheduler} from "./services/attendance-daily-summa
         BreakPermissionService,
         AttendanceSyncService],
     
-    exports: [NotificationService]
+    exports: [
+        NotificationService,
+        AttendanceService,
+        HolidayService,
+    ]
 })
 export class TimeManagementModule {}

@@ -7,6 +7,7 @@ import {
   Onboarding,
   OnboardingTaskStatus,
 } from '@/app/services/onboarding';
+import { employeeProfileService } from '@/app/services/employee-profile';
 
 const DEFAULT_TASK_TEMPLATES = [
   { name: 'Complete employee information form', department: 'HR' },
@@ -29,6 +30,8 @@ export default function OnboardingChecklistsPage() {
   const [onboardings, setOnboardings] = useState<Onboarding[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [formData, setFormData] = useState({
     employeeId: '',
     contractId: '',
@@ -39,6 +42,40 @@ export default function OnboardingChecklistsPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (showCreateForm && employees.length === 0) {
+      fetchEmployees();
+    }
+  }, [showCreateForm]);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoadingEmployees(true);
+      const response = await employeeProfileService.getAllEmployees(1, 1000) as any;
+      let employeesList: any[] = [];
+      if (Array.isArray(response)) {
+        employeesList = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        employeesList = response.data;
+      } else if (response?.data?.data && Array.isArray(response.data.data)) {
+        employeesList = response.data.data;
+      } else if (response?.data?.employees && Array.isArray(response.data.employees)) {
+        employeesList = response.data.employees;
+      }
+      setEmployees(employeesList);
+    } catch (err) {
+      console.error('Failed to fetch employees:', err);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  const getEmployeeDisplayName = (emp: any): string => {
+    if (!emp) return 'Unknown Employee';
+    if (typeof emp === 'string') return `Employee ${emp.slice(-6)}`;
+    return `${emp.fullName || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Employee'}${emp.employeeNumber ? ` (${emp.employeeNumber})` : ''}`;
+  };
 
   const fetchData = async () => {
     try {
@@ -157,16 +194,24 @@ export default function OnboardingChecklistsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Employee ID <span className="text-destructive">*</span>
+                  Employee <span className="text-destructive">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.employeeId}
                   onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-input rounded-md focus:ring-ring focus:border-ring text-foreground"
-                  placeholder="Enter employee ID"
+                  className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground"
                   required
-                />
+                  disabled={loadingEmployees}
+                >
+                  <option value="">
+                    {loadingEmployees ? 'Loading employees...' : 'Select employee'}
+                  </option>
+                  {employees.map((emp) => (
+                    <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                      {getEmployeeDisplayName(emp)}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
@@ -264,13 +309,11 @@ export default function OnboardingChecklistsPage() {
           ) : (
             onboardings.map((onboarding) => {
               const progress = calculateProgress(onboarding.tasks);
-              // Handle case where employeeId/contractId might be populated objects or strings
-              const employeeIdDisplay = typeof onboarding.employeeId === 'object'
-                ? (onboarding.employeeId as any)?._id || 'Unknown'
-                : onboarding.employeeId;
-              const contractIdDisplay = typeof onboarding.contractId === 'object'
-                ? (onboarding.contractId as any)?._id || 'Unknown'
-                : onboarding.contractId;
+              const employeeDisplay = getEmployeeDisplayName(onboarding.employeeId);
+              const contractDisplay = typeof onboarding.contractId === 'string'
+                ? `Contract ${onboarding.contractId.slice(-6)}`
+                : (onboarding.contractId as any)?.contractNumber || 'Contract';
+
               return (
                 <Link
                   key={onboarding._id}
@@ -280,25 +323,25 @@ export default function OnboardingChecklistsPage() {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="font-medium text-foreground">Employee: {employeeIdDisplay}</h3>
+                        <h3 className="font-medium text-foreground">{employeeDisplay}</h3>
                         <span
-                          className={`px-2 py-0.5 text-xs font-medium rounded-full ${onboarding.completed
-                              ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+                          className={`px-2 py-0.5 text-xs font-medium rounded-full ${progress >= 100
+                              ? 'bg-accent/10 text-accent-foreground'
                               : 'bg-primary/10 text-primary'
                             }`}
                         >
-                          {onboarding.completed ? 'Completed' : 'In Progress'}
+                          {progress >= 100 ? 'Completed' : 'In Progress'}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">Contract: {contractIdDisplay}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{contractDisplay}</p>
                       <p className="text-sm text-muted-foreground">Tasks: {onboarding.tasks?.length || 0}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-foreground">{progress}%</p>
                       <div className="w-24 bg-muted rounded-full h-2 mt-1">
                         <div
-                          className={`h-2 rounded-full ${onboarding.completed ? 'bg-green-500' : 'bg-primary'}`}
-                          style={{ width: `${progress}%` }}
+                          className={`h-2 rounded-full ${progress >= 100 ? 'bg-accent' : 'bg-primary'}`}
+                          style={{ width: `${Math.min(progress, 100)}%` }}
                         ></div>
                       </div>
                     </div>

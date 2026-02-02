@@ -133,7 +133,7 @@ export default function ShiftAssignmentsPage() {
                     console.error('Shifts error:', err);
                     return { data: [] };
                 }),
-                employeeProfileService.getAllEmployees(1, 1000).catch((err) => {
+                employeeProfileService.getAllEmployees(1, 100).catch((err) => {
                     console.error('Employees error:', err);
                     return { data: [] };
                 }),

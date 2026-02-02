@@ -136,9 +136,9 @@ export default function ReferralsPage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">{error}</p>
-        <button onClick={fetchData} className="mt-2 text-red-600 underline hover:text-red-800">
+      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+        <p className="text-destructive">{error}</p>
+        <button onClick={fetchData} className="mt-2 text-destructive underline hover:text-destructive">
           Retry
         </button>
       </div>
@@ -149,12 +149,12 @@ export default function ReferralsPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Employee Referrals</h1>
-          <p className="text-gray-600 mt-1">Candidates referred by employees get higher priority</p>
+          <h1 className="text-2xl font-bold text-foreground">Employee Referrals</h1>
+          <p className="text-muted-foreground mt-1">Candidates referred by employees get higher priority</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
           Add Referral
         </button>
@@ -162,19 +162,19 @@ export default function ReferralsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-sm text-gray-600">Total Referrals</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{referrals.length}</div>
+        <div className="bg-white rounded-lg border border-border p-4">
+          <div className="text-sm text-muted-foreground">Total Referrals</div>
+          <div className="text-2xl font-bold text-foreground mt-1">{referrals.length}</div>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-sm text-gray-600">Your Referrals</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
+        <div className="bg-white rounded-lg border border-border p-4">
+          <div className="text-sm text-muted-foreground">Your Referrals</div>
+          <div className="text-2xl font-bold text-foreground mt-1">
             {referrals.filter((r: any) => r.referrerId === user?.id || r.referringEmployeeId === user?.id).length}
           </div>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-sm text-gray-600">Active Candidates</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
+        <div className="bg-white rounded-lg border border-border p-4">
+          <div className="text-sm text-muted-foreground">Active Candidates</div>
+          <div className="text-2xl font-bold text-foreground mt-1">
             {applications.filter((app, index, self) => 
               index === self.findIndex((a) => a.candidateId === app.candidateId)
             ).length}
@@ -183,23 +183,23 @@ export default function ReferralsPage() {
       </div>
 
       {/* Filters - REC-030: Preferential filtering */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row gap-4">
+      <div className="bg-white rounded-lg border border-border p-4 flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Search</label>
           <input
             type="text"
             placeholder="Search by candidate name or position..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full border border-border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-primary"
           />
         </div>
         <div className="sm:w-48">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Status</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full border border-border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -220,7 +220,7 @@ export default function ReferralsPage() {
           <div className="flex items-end">
             <button
               onClick={() => { setStatusFilter('all'); setSearchQuery(''); }}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted"
             >
               Clear Filters
             </button>
@@ -230,33 +230,33 @@ export default function ReferralsPage() {
 
       {/* Results count */}
       {(statusFilter !== 'all' || searchQuery) && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           Showing {filteredReferrals.length} of {referrals.length} referrals
         </div>
       )}
 
       {/* Referrals Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Candidate
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Level
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Referred By
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
               </tr>
@@ -264,32 +264,32 @@ export default function ReferralsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredReferrals.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-4 text-center text-muted-foreground">
                     {referrals.length === 0 ? 'No referrals found' : 'No referrals match your filters'}
                   </td>
                 </tr>
               ) : (
                 filteredReferrals.map((referral: any) => (
-                  <tr key={referral.id || referral._id} className="hover:bg-gray-50">
+                  <tr key={referral.id || referral._id} className="hover:bg-muted">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {getCandidateName(referral.candidateId)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {referral.role || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {referral.level || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {getEmployeeName(referral.referringEmployeeId)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {referral.createdAt ? new Date(referral.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
                         {referral.status || 'pending'}
                       </span>
                     </td>
@@ -308,14 +308,14 @@ export default function ReferralsPage() {
             <h2 className="text-xl font-bold mb-4">Create Referral</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Candidate *
                 </label>
                 <select
                   required
                   value={formData.candidateId}
                   onChange={(e) => setFormData({ ...formData, candidateId: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 >
                   <option value="">Select Candidate</option>
                   {applications
@@ -333,7 +333,7 @@ export default function ReferralsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Role (Optional)
                 </label>
                 <input
@@ -341,18 +341,18 @@ export default function ReferralsPage() {
                   placeholder="e.g., Software Engineer"
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Seniority Level (Optional)
                 </label>
                 <select
                   value={formData.level}
                   onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 >
                   <option value="">Select Level</option>
                   <option value="Junior">Junior</option>
@@ -363,7 +363,7 @@ export default function ReferralsPage() {
                 </select>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-900">
+              <div className="bg-primary/10 border border-primary/20 rounded-md p-3 text-sm text-foreground">
                 <strong>Note:</strong> Referred candidates receive priority in the screening process
               </div>
 
@@ -371,13 +371,13 @@ export default function ReferralsPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                 >
                   Create Referral
                 </button>

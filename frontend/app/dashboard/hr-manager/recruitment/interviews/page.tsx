@@ -219,11 +219,11 @@ export default function InterviewsPage() {
 
   const getStatusBadge = (status: InterviewStatus): string => {
     const badges: Record<InterviewStatus, string> = {
-      [InterviewStatus.SCHEDULED]: 'bg-blue-100 text-blue-800',
-      [InterviewStatus.COMPLETED]: 'bg-green-100 text-green-800',
-      [InterviewStatus.CANCELLED]: 'bg-red-100 text-red-800',
+      [InterviewStatus.SCHEDULED]: 'bg-primary/10 text-primary',
+      [InterviewStatus.COMPLETED]: 'bg-accent/10 text-accent-foreground',
+      [InterviewStatus.CANCELLED]: 'bg-destructive/10 text-destructive',
     };
-    return badges[status] || 'bg-gray-100 text-gray-800';
+    return badges[status] || 'bg-muted text-foreground';
   };
 
   const getMethodLabel = (method: InterviewMethod): string => {
@@ -255,9 +255,9 @@ export default function InterviewsPage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">{error}</p>
-        <button onClick={fetchData} className="mt-2 text-red-600 underline hover:text-red-800">
+      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+        <p className="text-destructive">{error}</p>
+        <button onClick={fetchData} className="mt-2 text-destructive underline hover:text-destructive">
           Retry
         </button>
       </div>
@@ -267,40 +267,40 @@ export default function InterviewsPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Interview Management</h1>
+        <h1 className="text-2xl font-bold text-foreground">Interview Management</h1>
         <button
           onClick={() => setShowScheduleModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
           Schedule Interview
         </button>
       </div>
 
       {/* Interviews Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Candidate
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Stage
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Date & Time
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Method
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Panel Size
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -308,7 +308,7 @@ export default function InterviewsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {interviews.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">
                     No upcoming interviews
                   </td>
                 </tr>
@@ -316,26 +316,26 @@ export default function InterviewsPage() {
                 interviews.map((interview) => {
                   const candidateInfo = getCandidateInfo(interview.applicationId);
                   return (
-                    <tr key={interview.id} className="hover:bg-gray-50">
+                    <tr key={interview.id} className="hover:bg-muted">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{candidateInfo.name}</div>
-                        <div className="text-xs text-gray-500">{candidateInfo.jobTitle}</div>
+                        <div className="text-sm font-medium text-foreground">{candidateInfo.name}</div>
+                        <div className="text-xs text-muted-foreground">{candidateInfo.jobTitle}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {getStageLabel(interview.stage)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {new Date(interview.scheduledDate).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {getMethodLabel(interview.method)}
                         {interview.videoLink && (
-                          <a href={interview.videoLink} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 hover:text-blue-800">
+                          <a href={interview.videoLink} target="_blank" rel="noopener noreferrer" className="ml-2 text-primary hover:text-primary">
                             🔗
                           </a>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {interview.panel?.length || 0} members
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -352,25 +352,25 @@ export default function InterviewsPage() {
                           <>
                             <button
                               onClick={() => openRescheduleModal(interview)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="text-primary hover:text-foreground"
                             >
                               Reschedule
                             </button>
                             <button
                               onClick={() => router.push(`/dashboard/hr-manager/recruitment/interviews/${interview.id}/feedback`)}
-                              className="text-purple-600 hover:text-purple-900"
+                              className="text-primary hover:text-primary/80"
                             >
                               Feedback
                             </button>
                             <button
                               onClick={() => handleComplete(interview.id)}
-                              className="text-green-600 hover:text-green-900"
+                              className="text-accent-foreground hover:text-accent-foreground/80"
                             >
                               Complete
                             </button>
                             <button
                               onClick={() => handleCancel(interview.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-destructive hover:text-destructive/80"
                             >
                               Cancel
                             </button>
@@ -379,7 +379,7 @@ export default function InterviewsPage() {
                         {interview.status === InterviewStatus.COMPLETED && (
                           <button
                             onClick={() => router.push(`/dashboard/hr-manager/recruitment/interviews/${interview.id}/feedback`)}
-                            className="text-purple-600 hover:text-purple-900"
+                            className="text-primary hover:text-primary/80"
                           >
                             View Feedback
                           </button>
@@ -401,14 +401,14 @@ export default function InterviewsPage() {
             <h2 className="text-xl font-bold mb-4">Schedule Interview</h2>
             <form onSubmit={handleSchedule} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Application *
                 </label>
                 <select
                   required
                   value={formData.applicationId}
                   onChange={(e) => setFormData({ ...formData, applicationId: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 >
                   <option value="">Select Application</option>
                   {applications.map((app) => (
@@ -420,12 +420,12 @@ export default function InterviewsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stage *</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Stage *</label>
                 <select
                   required
                   value={formData.stage}
                   onChange={(e) => setFormData({ ...formData, stage: e.target.value as ApplicationStage })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 >
                   <option value={ApplicationStage.SCREENING}>Screening</option>
                   <option value={ApplicationStage.DEPARTMENT_INTERVIEW}>Department Interview</option>
@@ -434,7 +434,7 @@ export default function InterviewsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Date & Time *
                 </label>
                 <input
@@ -442,17 +442,17 @@ export default function InterviewsPage() {
                   type="datetime-local"
                   value={formData.scheduledDate}
                   onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Method *</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Method *</label>
                 <select
                   required
                   value={formData.method}
                   onChange={(e) => setFormData({ ...formData, method: e.target.value as InterviewMethod })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 >
                   <option value={InterviewMethod.ONSITE}>Onsite</option>
                   <option value={InterviewMethod.VIDEO}>Video</option>
@@ -462,7 +462,7 @@ export default function InterviewsPage() {
 
               {formData.method === InterviewMethod.VIDEO && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Video Link
                   </label>
                   <input
@@ -470,40 +470,40 @@ export default function InterviewsPage() {
                     value={formData.videoLink}
                     onChange={(e) => setFormData({ ...formData, videoLink: e.target.value })}
                     placeholder="https://zoom.us/..."
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-border rounded-md px-3 py-2"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Location</label>
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="e.g., Meeting Room A, Floor 3"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Notes</label>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Additional notes for the interview..."
                   rows={2}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Interview Panel * (Select at least one)
                 </label>
-                <div className="border border-gray-300 rounded-md p-3 max-h-48 overflow-y-auto">
+                <div className="border border-border rounded-md p-3 max-h-48 overflow-y-auto">
                   {employees.length === 0 ? (
-                    <div className="text-sm text-gray-500">No employees available</div>
+                    <div className="text-sm text-muted-foreground">No employees available</div>
                   ) : (
                     employees.map((emp: any) => (
                       <label key={emp.id} className="flex items-center space-x-2 py-1">
@@ -511,7 +511,7 @@ export default function InterviewsPage() {
                           type="checkbox"
                           checked={formData.panel.includes(emp.id)}
                           onChange={() => togglePanelMember(emp.id)}
-                          className="rounded border-gray-300"
+                          className="rounded border-border"
                         />
                         <span className="text-sm">{emp.fullName || emp.name || emp.id}</span>
                       </label>
@@ -524,14 +524,14 @@ export default function InterviewsPage() {
                 <button
                   type="button"
                   onClick={() => setShowScheduleModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formData.panel.length === 0}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Schedule
                 </button>
@@ -546,20 +546,20 @@ export default function InterviewsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Reschedule Interview</h2>
-            <div className="mb-4 p-3 bg-gray-50 rounded-md">
-              <p className="text-sm text-gray-600">
+            <div className="mb-4 p-3 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">
                 <strong>Candidate:</strong> {getCandidateInfo(selectedInterview.applicationId).name}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 <strong>Position:</strong> {getCandidateInfo(selectedInterview.applicationId).jobTitle}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 <strong>Current Date:</strong> {new Date(selectedInterview.scheduledDate).toLocaleString()}
               </p>
             </div>
             <form onSubmit={handleReschedule} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   New Date & Time *
                 </label>
                 <input
@@ -567,16 +567,16 @@ export default function InterviewsPage() {
                   type="datetime-local"
                   value={rescheduleData.scheduledDate}
                   onChange={(e) => setRescheduleData({ ...rescheduleData, scheduledDate: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Method</label>
                 <select
                   value={rescheduleData.method}
                   onChange={(e) => setRescheduleData({ ...rescheduleData, method: e.target.value as InterviewMethod })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 >
                   <option value={InterviewMethod.ONSITE}>Onsite</option>
                   <option value={InterviewMethod.VIDEO}>Video</option>
@@ -586,7 +586,7 @@ export default function InterviewsPage() {
 
               {rescheduleData.method === InterviewMethod.VIDEO && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Video Link
                   </label>
                   <input
@@ -594,30 +594,30 @@ export default function InterviewsPage() {
                     value={rescheduleData.videoLink}
                     onChange={(e) => setRescheduleData({ ...rescheduleData, videoLink: e.target.value })}
                     placeholder="https://zoom.us/..."
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-border rounded-md px-3 py-2"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Location</label>
                 <input
                   type="text"
                   value={rescheduleData.location}
                   onChange={(e) => setRescheduleData({ ...rescheduleData, location: e.target.value })}
                   placeholder="e.g., Meeting Room A, Floor 3"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Notes</label>
                 <textarea
                   value={rescheduleData.notes}
                   onChange={(e) => setRescheduleData({ ...rescheduleData, notes: e.target.value })}
                   placeholder="Reason for rescheduling or additional notes..."
                   rows={3}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
 
@@ -628,13 +628,13 @@ export default function InterviewsPage() {
                     setShowRescheduleModal(false);
                     setSelectedInterview(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                 >
                   Reschedule
                 </button>

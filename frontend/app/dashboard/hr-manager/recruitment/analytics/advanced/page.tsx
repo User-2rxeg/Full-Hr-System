@@ -56,22 +56,22 @@ import {
 
 function RiskBadge({ level }: { level: string }) {
   const colors: Record<string, string> = {
-    LOW: 'bg-green-100 text-green-800',
-    MEDIUM: 'bg-yellow-100 text-yellow-800',
-    HIGH: 'bg-orange-100 text-orange-800',
-    CRITICAL: 'bg-red-100 text-red-800',
+    LOW: 'bg-accent/10 text-accent-foreground',
+    MEDIUM: 'bg-muted text-muted-foreground',
+    HIGH: 'bg-primary/10 text-orange-800',
+    CRITICAL: 'bg-destructive/10 text-destructive',
   };
-  return <Badge className={colors[level] || 'bg-gray-100 text-gray-800'}>{level}</Badge>;
+  return <Badge className={colors[level] || 'bg-muted text-foreground'}>{level}</Badge>;
 }
 
 function TrendBadge({ trend }: { trend: string }) {
   if (trend === 'IMPROVING') {
-    return <Badge className="bg-green-100 text-green-800"><TrendingUp className="w-3 h-3 mr-1" />Improving</Badge>;
+    return <Badge className="bg-accent/10 text-accent-foreground"><TrendingUp className="w-3 h-3 mr-1" />Improving</Badge>;
   }
   if (trend === 'DECLINING') {
-    return <Badge className="bg-red-100 text-red-800"><TrendingDown className="w-3 h-3 mr-1" />Declining</Badge>;
+    return <Badge className="bg-destructive/10 text-destructive"><TrendingDown className="w-3 h-3 mr-1" />Declining</Badge>;
   }
-  return <Badge className="bg-gray-100 text-gray-800">Stable</Badge>;
+  return <Badge className="bg-muted text-foreground">Stable</Badge>;
 }
 
 function MetricCard({ title, value, subtitle, icon: Icon, trend }: {
@@ -91,8 +91,8 @@ function MetricCard({ title, value, subtitle, icon: Icon, trend }: {
             {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
           </div>
           {Icon && (
-            <div className={`p-3 rounded-full ${trend === 'up' ? 'bg-green-100' : trend === 'down' ? 'bg-red-100' : 'bg-gray-100'}`}>
-              <Icon className={`w-5 h-5 ${trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-600'}`} />
+            <div className={`p-3 rounded-full ${trend === 'up' ? 'bg-accent/10' : trend === 'down' ? 'bg-destructive/10' : 'bg-muted'}`}>
+              <Icon className={`w-5 h-5 ${trend === 'up' ? 'text-accent-foreground' : trend === 'down' ? 'text-destructive' : 'text-muted-foreground'}`} />
             </div>
           )}
         </div>
@@ -139,9 +139,9 @@ export default function RecruitmentAdvancedAnalyticsPage() {
   if (error || !data) {
     return (
       <div className="p-8">
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-destructive/20 bg-destructive/10">
           <CardContent className="p-6">
-            <div className="flex items-center gap-2 text-red-600">
+            <div className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
               <span>{error || 'Failed to load data'}</span>
             </div>

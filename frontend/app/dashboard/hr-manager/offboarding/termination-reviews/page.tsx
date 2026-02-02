@@ -56,9 +56,9 @@ export default function TerminationReviewsPage() {
   const fetchAllEmployees = async () => {
     try {
       setLoadingEmployees(true);
-      // Fetch a large number of employees to avoid pagination complexity for now
-      // Removing 'ACTIVE' filter to ensure we get all employees regardless of status casing or value
-      const response = await employeeProfileService.getAllEmployees(1, 1000) as any;
+      console.log('Fetching employees...');
+      const response = await employeeProfileService.getAllEmployees(1, 100) as any;
+      console.log('Employee API response:', response);
 
       let employeesList: any[] = [];
 
@@ -73,6 +73,7 @@ export default function TerminationReviewsPage() {
         employeesList = response.data.employees;
       }
 
+      console.log('Extracted employees list:', employeesList.length, employeesList);
       setAllEmployees(employeesList);
     } catch (err) {
       console.error('Fetch employees error:', err);
