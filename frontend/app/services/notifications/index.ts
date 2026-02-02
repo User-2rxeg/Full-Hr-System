@@ -61,6 +61,16 @@ export const notificationsService = {
     return apiService.delete(`/notifications/user/${userId}/clear`);
   },
 
+  // Mark notification as read
+  markAsRead: async (notificationId: string) => {
+    return apiService.patch(`/notifications/${notificationId}/read`, {});
+  },
+
+  // Mark all notifications as read for a user
+  markAllAsRead: async (userId: string) => {
+    return apiService.patch(`/notifications/user/${userId}/read-all`, {});
+  },
+
   // Parse notification message to extract leave details
   parseLeaveNotification: (notification: Notification): {
     action: 'submitted' | 'approved' | 'rejected' | 'cancelled' | 'modified' | 'balance_adjusted' | 'other';

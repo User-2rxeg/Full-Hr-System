@@ -308,8 +308,8 @@ export default function PerformanceCyclesPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                     { label: 'Total Cycles', value: stats.total, icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', color: 'text-foreground', bg: 'bg-muted' },
-                    { label: 'Active', value: stats.active, icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15', color: 'text-green-600', bg: 'bg-green-500/10' },
-                    { label: 'Planned', value: stats.planned, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'text-amber-600', bg: 'bg-amber-500/10' },
+                    { label: 'Active', value: stats.active, icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15', color: 'text-accent-foreground', bg: 'bg-accent/10' },
+                    { label: 'Planned', value: stats.planned, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: 'text-muted-foreground', bg: 'bg-muted' },
                     { label: 'Closed', value: stats.closed, icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', color: 'text-foreground', bg: 'bg-muted' },
                 ].map((stat, i) => (
                     <div key={i} className="bg-card border border-border rounded-xl p-5 hover:shadow-md transition-shadow">
@@ -320,8 +320,8 @@ export default function PerformanceCyclesPage() {
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                                <p className="text-2xl font-black text-foreground">{stat.value}</p>
+                                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+                                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                             </div>
                         </div>
                     </div>
@@ -331,7 +331,7 @@ export default function PerformanceCyclesPage() {
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     <Input
@@ -368,7 +368,7 @@ export default function PerformanceCyclesPage() {
                             <div>
                                 <div className="flex items-start justify-between mb-4 text-sm">
                                     <div className="flex flex-col gap-1">
-                                        <h3 className="font-bold text-foreground text-base group-hover:text-primary transition-colors">
+                                        <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
                                             {cycle.name}
                                         </h3>
                                         <Badge variant="outline" className={`w-fit text-[10px] h-5 ${statusColors[cycle.status]}`}>
@@ -406,7 +406,7 @@ export default function PerformanceCyclesPage() {
                                         <span className="font-bold text-foreground">{cycle.templateId?.name || 'Standard'}</span>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                                        <div className="flex justify-between text-[10px] font-semibold uppercase tracking-widest">
                                             <span className="text-muted-foreground">Progression</span>
                                             <span className="text-foreground">{progress}%</span>
                                         </div>
@@ -569,7 +569,7 @@ export default function PerformanceCyclesPage() {
                 <DialogContent className="max-w-xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <div className="text-gray-600">{getStatusIcon(selectedCycle?.status || 'PLANNED')}</div>
+                            <div className="text-muted-foreground">{getStatusIcon(selectedCycle?.status || 'PLANNED')}</div>
                             {selectedCycle?.name}
                         </DialogTitle>
                         <DialogDescription>

@@ -1,10 +1,10 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { OpenAIService } from './openai.service';
-import { OpenAIController } from './openai.controller';
-import { HRAssistantService } from './hr-assistant.service';
-import { HRAssistantController } from './hr-assistant.controller';
+import { OpenAIService } from './services/openai.service';
+import { OpenAIController } from './controllers/openai.controller';
+import { HRAssistantService } from './services/hr-assistant.service';
+import { HRAssistantController } from './controllers/hr-assistant.controller';
 import { EmployeeProfile, EmployeeProfileSchema } from '../employee/models/employee/employee-profile.schema';
 import { Department, DepartmentSchema } from '../organization-structure/models/department.schema';
 import { Position, PositionSchema } from '../organization-structure/models/position.schema';

@@ -37,11 +37,11 @@ export function HeroSection() {
           {/* Main Headline */}
           <div className="relative mb-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
             <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl flex flex-col items-center">
-              <span>Shape Tomorrow's</span>
+              <span>HR Management</span>
               <span className="relative mt-2">
                 <span className="absolute -inset-2 bg-gradient-to-r from-primary to-blue-600 blur-2xl opacity-20 rounded-full"></span>
                 <span className="relative bg-gradient-to-r from-primary via-blue-500 to-indigo-600 bg-clip-text text-transparent pb-2">
-                  Leaders
+                  System
                 </span>
               </span>
             </h1>
@@ -49,7 +49,7 @@ export function HeroSection() {
 
           {/* Arabic Headline */}
           <h2 className="mb-10 text-3xl sm:text-5xl font-bold bg-gradient-to-r from-slate-600 via-slate-800 to-black dark:from-slate-400 dark:via-slate-200 dark:to-white bg-clip-text text-transparent leading-tight py-2 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 font-arabic">
-            شايف نفسك فين بعد خمس سنين؟
+              شايف نفسك فين بعد خمس سنين؟
           </h2>
 
           {/* Subheading */}

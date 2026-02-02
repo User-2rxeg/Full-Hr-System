@@ -52,7 +52,7 @@ export default function OnboardingChecklistsPage() {
   const fetchEmployees = async () => {
     try {
       setLoadingEmployees(true);
-      const response = await employeeProfileService.getAllEmployees(1, 1000) as any;
+      const response = await employeeProfileService.getAllEmployees(1, 100) as any;
       let employeesList: any[] = [];
       if (Array.isArray(response)) {
         employeesList = response;

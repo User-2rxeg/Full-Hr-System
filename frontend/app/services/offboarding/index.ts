@@ -22,6 +22,15 @@ export enum ApprovalStatus {
   PENDING = 'pending',
 }
 
+export enum TerminationReason {
+  PERSONAL = 'personal',
+  CAREER_CHANGE = 'career_change',
+  RELOCATION = 'relocation',
+  HEALTH = 'health',
+  RETIREMENT = 'retirement',
+  OTHER = 'other',
+}
+
 // Interfaces matching backend schemas
 export interface TerminationRequest {
   _id: string;

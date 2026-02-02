@@ -85,10 +85,10 @@ interface DisputeStats {
 }
 
 const statusColors: Record<string, string> = {
-    OPEN: 'bg-muted text-muted-foreground border-border',
-    UNDER_REVIEW: 'bg-muted-foreground text-background border-muted-foreground',
-    ADJUSTED: 'bg-foreground text-background border-foreground',
-    REJECTED: 'bg-muted text-muted-foreground border-border opacity-50',
+    OPEN: 'bg-primary/10 text-primary border-primary/20',
+    UNDER_REVIEW: 'bg-muted text-muted-foreground border-border',
+    ADJUSTED: 'bg-accent/10 text-accent-foreground border-accent/20',
+    REJECTED: 'bg-destructive/10 text-destructive border-destructive/20',
 };
 
 const StatusIcon = ({ status, className }: { status: string; className?: string }) => {

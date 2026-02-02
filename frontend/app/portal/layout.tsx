@@ -52,6 +52,19 @@ const PORTAL_NAV_ITEMS: NavItemType[] = [
       { label: 'Request Leave', href: '/portal/my-leaves/request', icon: 'plus-circle' },
     ],
   },
+    {
+        label: 'Payroll Tracking',
+        href: '/portal/payroll-tracking',
+        icon: 'dollar',
+        children: [
+            { label: 'My Payslips', href: '/portal/payroll-tracking/payslips', icon: 'file-text' },
+            { label: 'Salary History', href: '/portal/payroll-tracking/salary-history', icon: 'trending-up' },
+            { label: 'Deductions', href: '/portal/payroll-tracking/deductions', icon: 'credit-card' },
+            { label: 'Employer Contributions', href: '/portal/payroll-tracking/contributions', icon: 'briefcase' },
+            { label: 'Tax Documents', href: '/portal/payroll-tracking/tax-documents', icon: 'folder' },
+            { label: 'Claims & Disputes', href: '/portal/payroll-tracking/claims-disputes', icon: 'alert-circle' },
+        ],
+    },
   {
     label: 'My Performance',
     href: '/portal/my-performance',
@@ -67,15 +80,15 @@ const PORTAL_NAV_ITEMS: NavItemType[] = [
     href: '/portal/my-notifications',
     icon: 'bell',
   },
-  {
-    label: 'My Onboarding',
-    href: '/portal/my-onboarding',
-    icon: 'clipboard',
-    children: [
-      { label: 'Tracker', href: '/portal/my-onboarding', icon: 'clipboard' },
-      { label: 'Upload Documents', href: '/portal/candidate/document-upload', icon: 'upload' },
-    ],
-  },
+  // {
+  //   label: 'My Onboarding',
+  //   href: '/portal/my-onboarding',
+  //   icon: 'clipboard',
+  //   children: [
+  //     { label: 'Tracker', href: '/portal/my-onboarding', icon: 'clipboard' },
+  //     { label: 'Upload Documents', href: '/portal/candidate/document-upload', icon: 'upload' },
+  //   ],
+  // },
   {
     label: 'Resignation',
     href: '/portal/my-resignation',
@@ -86,18 +99,7 @@ const PORTAL_NAV_ITEMS: NavItemType[] = [
     href: '/portal/my-termination',
     icon: 'log-out',
   },
-  {
-    label: 'Access Management',
-    href: '/portal/access-management',
-    icon: 'shield',
-    roles: [SystemRole.SYSTEM_ADMIN, SystemRole.HR_MANAGER, SystemRole.HR_ADMIN],
-  },
-  {
-    label: 'Equipment Reservation',
-    href: '/portal/equipment-reservation',
-    icon: 'briefcase',
-    roles: [SystemRole.SYSTEM_ADMIN, SystemRole.HR_MANAGER, SystemRole.HR_ADMIN],
-  },
+
 ];
 
 function NavIcon({ name, className }: { name: string; className?: string }) {
@@ -122,6 +124,8 @@ function NavIcon({ name, className }: { name: string; className?: string }) {
     upload: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />,
     'log-out': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />,
     home: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />,
+    folder: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />,
+    'alert-circle': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />,
     'chevron-down': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />,
     'chevron-right': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />,
     menu: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />,

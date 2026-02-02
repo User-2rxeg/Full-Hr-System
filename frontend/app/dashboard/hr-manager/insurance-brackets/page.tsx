@@ -416,7 +416,7 @@ export default function InsuranceBracketsPage() {
 
       {/* Info Footer */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700">
-        <p className="font-medium">ℹ️ Insurance Bracket Guidelines</p>
+        <p className="font-medium">Insurance Bracket Guidelines</p>
         <ul className="list-disc ml-5 space-y-1 mt-2">
           <li>Insurance brackets define contribution rates based on salary ranges</li>
           <li>Employee & employer rates are percentages (0-100%) applied to the base amount</li>

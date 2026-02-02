@@ -224,8 +224,8 @@ export default function PerformanceReportsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm font-medium text-red-800">{error}</p>
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <p className="text-sm font-medium text-destructive">{error}</p>
         </div>
       )}
 
@@ -269,8 +269,8 @@ export default function PerformanceReportsPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                <p className="text-2xl font-black text-foreground">{stat.value}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{stat.label}</p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
               </div>
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function PerformanceReportsPage() {
         {/* Rating Distribution */}
         <div className="lg:col-span-1 bg-card border border-border rounded-xl overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-border bg-muted/30">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rating Distribution</h3>
+            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Rating Distribution</h3>
           </div>
           <div className="p-6 space-y-6">
             {[
@@ -301,7 +301,7 @@ export default function PerformanceReportsPage() {
                       <span className="text-xs font-bold text-foreground block">{item.label}</span>
                       <span className="text-[10px] text-muted-foreground font-medium">{item.range}</span>
                     </div>
-                    <span className="text-xs font-black text-foreground">{value} ({percentage.toFixed(0)}%)</span>
+                    <span className="text-xs font-bold text-foreground">{value} ({percentage.toFixed(0)}%)</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                     <div
@@ -318,15 +318,15 @@ export default function PerformanceReportsPage() {
         {/* Department Breakdown */}
         <div className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-border bg-muted/30">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Departmental Performance Matrix</h3>
+            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Departmental Performance Matrix</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-muted/50 border-b border-border">
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">Department</th>
-                  <th className="px-6 py-4 text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest">Completion</th>
-                  <th className="px-6 py-4 text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest">Avg Rating</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Department</th>
+                  <th className="px-6 py-4 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Completion</th>
+                  <th className="px-6 py-4 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Avg Rating</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -344,11 +344,11 @@ export default function PerformanceReportsPage() {
                             style={{ width: `${dept.total > 0 ? (dept.completed / dept.total) * 100 : 0}%` }}
                           ></div>
                         </div>
-                        <span className="text-xs font-black text-foreground">{dept.total > 0 ? Math.round((dept.completed / dept.total) * 100) : 0}%</span>
+                        <span className="text-xs font-bold text-foreground">{dept.total > 0 ? Math.round((dept.completed / dept.total) * 100) : 0}%</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <Badge variant="outline" className={`font-black ${(dept.averageRating || 0) >= 4 ? 'bg-foreground text-background border-foreground' :
+                      <Badge variant="outline" className={`font-bold ${(dept.averageRating || 0) >= 4 ? 'bg-foreground text-background border-foreground' :
                         (dept.averageRating || 0) >= 3 ? 'bg-muted-foreground text-background border-muted-foreground' :
                           'bg-muted text-muted-foreground border-border'
                         }`}>

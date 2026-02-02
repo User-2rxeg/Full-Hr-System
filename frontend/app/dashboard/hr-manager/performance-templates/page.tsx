@@ -308,11 +308,11 @@ export default function PerformanceTemplatesPage() {
 
     const getTypeColor = (type: string) => {
         switch (type) {
-            case 'ANNUAL': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+            case 'ANNUAL': return 'bg-primary/10 text-primary border-primary/20';
             case 'SEMI_ANNUAL': return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20';
             case 'PROBATIONARY': return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20';
-            case 'PROJECT': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
-            case 'AD_HOC': return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
+            case 'PROJECT': return 'bg-primary/10 text-primary border-primary/20';
+            case 'AD_HOC': return 'bg-accent/10 text-accent-foreground border-accent/20';
             default: return 'bg-muted text-muted-foreground border-border';
         }
     };
@@ -374,8 +374,8 @@ export default function PerformanceTemplatesPage() {
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                                <p className="text-2xl font-black text-foreground">{stat.value}</p>
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{stat.label}</p>
+                                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                             </div>
                         </div>
                     </div>
@@ -384,15 +384,15 @@ export default function PerformanceTemplatesPage() {
 
             {/* Error Message */}
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                    <button onClick={() => setError(null)} className="text-sm text-red-600 underline mt-1">Dismiss</button>
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                    <p className="text-sm font-medium text-destructive">{error}</p>
+                    <button onClick={() => setError(null)} className="text-sm text-destructive underline mt-1">Dismiss</button>
                 </div>
             )}
 
             {/* Search */}
             <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <Input

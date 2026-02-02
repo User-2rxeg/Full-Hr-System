@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { leavesService } from '@/app/services/leaves';
+import { employeeProfileService } from '@/app/services/employee-profile';
 import { useAuth } from '@/context/AuthContext';
 import { API_BASE_URL } from '@/app/services/api';
 import type { LeaveBalanceSummary } from '@/types/leaves';
@@ -85,6 +86,8 @@ export default function HRManagerLeavesPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [employeeBalances, setEmployeeBalances] = useState<LeaveBalanceSummary[]>([]);
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [assignForm, setAssignForm] = useState({
     employeeId: '',
     leaveTypeId: '',
@@ -262,6 +265,37 @@ export default function HRManagerLeavesPage() {
     }
   };
 
+  const fetchEmployees = async () => {
+    try {
+      setLoadingEmployees(true);
+      const response = await employeeProfileService.getAllEmployees(1, 100) as any;
+
+      let employeesList: any[] = [];
+      if (Array.isArray(response)) {
+        employeesList = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        employeesList = response.data;
+      } else if (response?.data?.data && Array.isArray(response.data.data)) {
+        employeesList = response.data.data;
+      } else if (response?.data?.employees && Array.isArray(response.data.employees)) {
+        employeesList = response.data.employees;
+      }
+
+      setEmployees(employeesList);
+      console.log('Employees fetched:', employeesList.length);
+    } catch (err) {
+      console.error('Failed to fetch employees:', err);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  const getEmployeeDisplayName = (emp: any): string => {
+    if (!emp) return 'Unknown Employee';
+    if (typeof emp === 'string') return `Employee ${emp.slice(-6)}`;
+    return `${emp.fullName || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Employee'}${emp.employeeNumber ? ` (${emp.employeeNumber})` : ''}`;
+  };
+
   const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
@@ -317,6 +351,7 @@ export default function HRManagerLeavesPage() {
   useEffect(() => {
     if (!user) return;
     fetchLeaveTypes();
+    fetchEmployees(); // Fetch employees on mount
     if (activeTab === 'requests') {
       fetchRequests();
     }
@@ -1628,15 +1663,21 @@ export default function HRManagerLeavesPage() {
                 <h2 className="text-lg font-semibold text-foreground mb-4">Assign Leave Entitlement</h2>
                 <form onSubmit={handleAssignEntitlement} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Employee ID</label>
-                    <input
-                      type="text"
+                    <label className="block text-sm font-medium text-foreground mb-2">Select Employee</label>
+                    <select
                       value={assignForm.employeeId}
                       onChange={(e) => setAssignForm({ ...assignForm, employeeId: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
-                      placeholder="Enter employee ID"
+                      className="w-full px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
                       required
-                    />
+                      disabled={loadingEmployees}
+                    >
+                      <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                      {employees.map((emp) => (
+                        <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                          {getEmployeeDisplayName(emp)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Leave Type</label>
@@ -1682,15 +1723,21 @@ export default function HRManagerLeavesPage() {
                 <h2 className="text-lg font-semibold text-foreground mb-4">View Employee Balances</h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Employee ID</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Select Employee</label>
                     <div className="flex gap-2">
-                      <input
-                        type="text"
+                      <select
                         value={selectedEmployeeId}
                         onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                        className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
-                        placeholder="Enter employee ID"
-                      />
+                        className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
+                        disabled={loadingEmployees}
+                      >
+                        <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                        {employees.map((emp) => (
+                          <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                            {getEmployeeDisplayName(emp)}
+                          </option>
+                        ))}
+                      </select>
                       <button
                         onClick={() => fetchEmployeeBalances(selectedEmployeeId)}
                         disabled={!selectedEmployeeId || loading}
@@ -1779,15 +1826,21 @@ export default function HRManagerLeavesPage() {
             <form onSubmit={handleCreateAdjustment} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Employee ID</label>
-                  <input
-                    type="text"
+                  <label className="block text-sm font-medium text-foreground mb-2">Select Employee</label>
+                  <select
                     value={adjustmentForm.employeeId}
                     onChange={(e) => setAdjustmentForm({ ...adjustmentForm, employeeId: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
-                    placeholder="Enter employee ID"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
                     required
-                  />
+                    disabled={loadingEmployees}
+                  >
+                    <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                    {employees.map((emp) => (
+                      <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                        {getEmployeeDisplayName(emp)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Leave Type</label>
@@ -2141,13 +2194,19 @@ export default function HRManagerLeavesPage() {
                     Recalculates taken/pending from actual leave requests to fix any discrepancies.
                   </p>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
+                    <select
                       value={recalcEmployeeId}
                       onChange={(e) => setRecalcEmployeeId(e.target.value)}
-                      className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
-                      placeholder="Enter employee ID"
-                    />
+                      className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
+                      disabled={loadingEmployees}
+                    >
+                      <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                      {employees.map((emp) => (
+                        <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                          {getEmployeeDisplayName(emp)}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       onClick={handleRecalcEmployee}
                       disabled={loading || !recalcEmployeeId.trim()}
@@ -2165,13 +2224,19 @@ export default function HRManagerLeavesPage() {
                     Creates default entitlements (Annual: 21, Sick: 14, Personal: 5 days) for employees without any.
                   </p>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
+                    <select
                       value={selectedEmployeeId}
                       onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                      className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
-                      placeholder="Enter employee ID"
-                    />
+                      className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
+                      disabled={loadingEmployees}
+                    >
+                      <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                      {employees.map((emp) => (
+                        <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                          {getEmployeeDisplayName(emp)}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       onClick={() => handleInitializeEntitlements(selectedEmployeeId)}
                       disabled={loading || !selectedEmployeeId.trim()}
@@ -2305,7 +2370,7 @@ export default function HRManagerLeavesPage() {
                 </div>
                 <button
                   onClick={() => { setError(null); setShowPayrollSyncModal(true); }}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary"
                 >
                   Sync Employee
                 </button>
@@ -2315,13 +2380,13 @@ export default function HRManagerLeavesPage() {
               <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg border border-indigo-100 p-4 mb-4">
                 <div className="flex gap-3">
                   <div className="flex-shrink-0">
-                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                   </div>
                   <div className="text-sm">
-                    <p className="font-medium text-indigo-800">Automatic Payroll Integration:</p>
-                    <ul className="mt-1 text-indigo-700 space-y-0.5">
+                    <p className="font-medium text-primary">Automatic Payroll Integration:</p>
+                    <ul className="mt-1 text-primary space-y-0.5">
                       <li>• <strong>Unpaid Leave Deductions:</strong> Calculate salary deductions for unpaid leave days</li>
                       <li>• <strong>Leave Encashment:</strong> Calculate payout for unused leave days</li>
                       <li>• <strong>Real-time Sync:</strong> Get latest leave data for payroll processing</li>
@@ -2332,66 +2397,66 @@ export default function HRManagerLeavesPage() {
 
               {/* Quick Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="p-4 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <span className="font-medium text-gray-700">Deduction Calc</span>
+                    <span className="font-medium text-foreground">Deduction Calc</span>
                   </div>
-                  <p className="text-xs text-gray-500">Daily Rate = Monthly Salary ÷ Work Days</p>
+                  <p className="text-xs text-muted-foreground">Daily Rate = Monthly Salary ÷ Work Days</p>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="p-4 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <span className="font-medium text-gray-700">Auto-Detect</span>
+                    <span className="font-medium text-foreground">Auto-Detect</span>
                   </div>
-                  <p className="text-xs text-gray-500">Finds approved unpaid leaves in period</p>
+                  <p className="text-xs text-muted-foreground">Finds approved unpaid leaves in period</p>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="p-4 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <span className="font-medium text-gray-700">Balance Summary</span>
+                    <span className="font-medium text-foreground">Balance Summary</span>
                   </div>
-                  <p className="text-xs text-gray-500">Includes current leave balances</p>
+                  <p className="text-xs text-muted-foreground">Includes current leave balances</p>
                 </div>
               </div>
 
               {/* Recent Sync History */}
               {payrollSyncHistory.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Payroll Syncs</h3>
+                  <h3 className="text-sm font-medium text-foreground mb-2">Recent Payroll Syncs</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 text-sm">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-muted/30">
                         <tr>
-                          <th className="px-3 py-2 text-left font-medium text-gray-500">Employee ID</th>
-                          <th className="px-3 py-2 text-left font-medium text-gray-500">Period</th>
-                          <th className="px-3 py-2 text-right font-medium text-gray-500">Unpaid Days</th>
-                          <th className="px-3 py-2 text-right font-medium text-gray-500">Deduction</th>
-                          <th className="px-3 py-2 text-left font-medium text-gray-500">Synced At</th>
+                          <th className="px-3 py-2 text-left font-medium text-muted-foreground">Employee ID</th>
+                          <th className="px-3 py-2 text-left font-medium text-muted-foreground">Period</th>
+                          <th className="px-3 py-2 text-right font-medium text-muted-foreground">Unpaid Days</th>
+                          <th className="px-3 py-2 text-right font-medium text-muted-foreground">Deduction</th>
+                          <th className="px-3 py-2 text-left font-medium text-muted-foreground">Synced At</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {payrollSyncHistory.slice(0, 5).map((sync, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50">
+                          <tr key={idx} className="hover:bg-muted/30">
                             <td className="px-3 py-2 font-mono text-xs">{sync.employeeId.slice(-8)}</td>
                             <td className="px-3 py-2">{sync.payrollPeriod}</td>
                             <td className="px-3 py-2 text-right">{sync.totalDays}</td>
-                            <td className="px-3 py-2 text-right text-red-600 font-medium">
+                            <td className="px-3 py-2 text-right text-destructive font-medium">
                               {sync.deductionAmount > 0 ? `-$${sync.deductionAmount.toFixed(2)}` : '$0.00'}
                             </td>
-                            <td className="px-3 py-2 text-xs text-gray-500">
+                            <td className="px-3 py-2 text-xs text-muted-foreground">
                               {new Date(sync.syncedAt).toLocaleString()}
                             </td>
                           </tr>
@@ -2404,47 +2469,47 @@ export default function HRManagerLeavesPage() {
 
               {/* Last Sync Result */}
               {payrollSyncResult && (
-                <div className={`mt-4 p-4 rounded-lg ${payrollSyncResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                  <h3 className={`text-sm font-medium ${payrollSyncResult.ok ? 'text-green-800' : 'text-red-800'} mb-2`}>
+                <div className={`mt-4 p-4 rounded-lg ${payrollSyncResult.ok ? 'bg-accent/10 border border-accent/20' : 'bg-destructive/10 border border-destructive/20'}`}>
+                  <h3 className={`text-sm font-medium ${payrollSyncResult.ok ? 'text-accent-foreground' : 'text-destructive'} mb-2`}>
                     Last Sync Result - {payrollSyncResult.payrollPeriod}
                   </h3>
                   {payrollSyncResult.ok ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                       <div>
-                        <span className="text-gray-500">Unpaid Days:</span>
+                        <span className="text-muted-foreground">Unpaid Days:</span>
                         <span className="ml-2 font-medium">{payrollSyncResult.unpaidLeaveDeduction.totalDays}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Deduction:</span>
-                        <span className="ml-2 font-medium text-red-600">${payrollSyncResult.unpaidLeaveDeduction.deductionAmount.toFixed(2)}</span>
+                        <span className="text-muted-foreground">Deduction:</span>
+                        <span className="ml-2 font-medium text-destructive">${payrollSyncResult.unpaidLeaveDeduction.deductionAmount.toFixed(2)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Annual Balance:</span>
+                        <span className="text-muted-foreground">Annual Balance:</span>
                         <span className="ml-2 font-medium">{payrollSyncResult.balanceSummary.annual.remaining} days</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Sick Balance:</span>
+                        <span className="text-muted-foreground">Sick Balance:</span>
                         <span className="ml-2 font-medium">{payrollSyncResult.balanceSummary.sick.remaining} days</span>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-red-700">{payrollSyncResult.error}</p>
+                    <p className="text-sm text-destructive">{payrollSyncResult.error}</p>
                   )}
                 </div>
               )}
             </div>
 
             {/* Personal Leave Fix Notice */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+            <div className="bg-warning/10 border border-warning/20 rounded-xl p-6">
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-amber-800">Personal Leave Balance Fix</h3>
-                  <p className="text-sm text-amber-700 mt-1">
+                  <h3 className="font-semibold text-warning">Personal Leave Balance Fix</h3>
+                  <p className="text-sm text-warning mt-1">
                     If employees show 0 days for Personal Leave, use the &quot;Initialize Default Entitlements&quot; feature above
                     with their Employee ID. This will automatically create entitlements for all leave types including
                     5 days of Personal Leave.
@@ -2460,12 +2525,12 @@ export default function HRManagerLeavesPage() {
       {showPreviewModal && carryForwardPreview && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowPreviewModal(false)}></div>
-            <div className="relative inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-4xl sm:w-full max-h-[80vh] overflow-y-auto">
-              <div className="bg-white px-6 pt-6 pb-4">
+            <div className="fixed inset-0 bg-muted bg-opacity-75 transition-opacity" onClick={() => setShowPreviewModal(false)}></div>
+            <div className="relative inline-block bg-card rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-4xl sm:w-full max-h-[80vh] overflow-y-auto">
+              <div className="bg-card px-6 pt-6 pb-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Carry-Forward Preview</h3>
-                  <button onClick={() => setShowPreviewModal(false)} className="text-gray-400 hover:text-gray-500">
+                  <h3 className="text-lg font-semibold text-foreground">Carry-Forward Preview</h3>
+                  <button onClick={() => setShowPreviewModal(false)} className="text-muted-foreground hover:text-muted-foreground">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -2474,31 +2539,31 @@ export default function HRManagerLeavesPage() {
 
                 {/* Summary Stats */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="bg-blue-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-blue-600">{carryForwardPreview.summary?.employeesProcessed || 0}</p>
-                    <p className="text-sm text-blue-700">Employees</p>
+                  <div className="bg-primary/10 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-primary">{carryForwardPreview.summary?.employeesProcessed || 0}</p>
+                    <p className="text-sm text-primary">Employees</p>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-green-600">{carryForwardPreview.totalCarriedForward || 0}</p>
-                    <p className="text-sm text-green-700">Days to Carry</p>
+                  <div className="bg-accent/10 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-accent-foreground">{carryForwardPreview.totalCarriedForward || 0}</p>
+                    <p className="text-sm text-accent-foreground">Days to Carry</p>
                   </div>
-                  <div className="bg-red-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-red-600">{carryForwardPreview.totalExpired || 0}</p>
-                    <p className="text-sm text-red-700">Days to Expire</p>
+                  <div className="bg-destructive/10 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-destructive">{carryForwardPreview.totalExpired || 0}</p>
+                    <p className="text-sm text-destructive">Days to Expire</p>
                   </div>
                 </div>
 
                 {/* By Leave Type */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">By Leave Type:</h4>
+                  <h4 className="text-sm font-medium text-foreground mb-2">By Leave Type:</h4>
                   <div className="space-y-2">
                     {carryForwardPreview.summary?.byLeaveType?.map((lt: { leaveTypeId: string; leaveTypeName: string; totalCarried: number; totalExpired: number; employeesAffected: number }) => (
-                      <div key={lt.leaveTypeId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={lt.leaveTypeId} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <span className="font-medium">{lt.leaveTypeName}</span>
                         <div className="flex gap-4 text-sm">
-                          <span className="text-green-600">+{lt.totalCarried} carried</span>
-                          <span className="text-red-600">-{lt.totalExpired} expired</span>
-                          <span className="text-gray-500">{lt.employeesAffected} employees</span>
+                          <span className="text-accent-foreground">+{lt.totalCarried} carried</span>
+                          <span className="text-destructive">-{lt.totalExpired} expired</span>
+                          <span className="text-muted-foreground">{lt.employeesAffected} employees</span>
                         </div>
                       </div>
                     ))}
@@ -2508,10 +2573,10 @@ export default function HRManagerLeavesPage() {
                 {/* Details Table */}
                 {carryForwardPreview.details && carryForwardPreview.details.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Detailed Changes:</h4>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Detailed Changes:</h4>
                     <div className="overflow-x-auto max-h-64">
                       <table className="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-muted/30">
                           <tr>
                             <th className="px-3 py-2 text-left">Employee</th>
                             <th className="px-3 py-2 text-left">Leave Type</th>
@@ -2524,20 +2589,20 @@ export default function HRManagerLeavesPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {carryForwardPreview.details.slice(0, 50).map((d: { employeeId: string; leaveTypeName: string; previousRemaining: number; cappedAmount: number; carriedForward: number; expired: number; expiryDate?: string }, idx: number) => (
-                            <tr key={idx} className="hover:bg-gray-50">
+                            <tr key={idx} className="hover:bg-muted/30">
                               <td className="px-3 py-2 font-mono text-xs">{d.employeeId.slice(-8)}</td>
                               <td className="px-3 py-2">{d.leaveTypeName}</td>
                               <td className="px-3 py-2 text-right">{d.previousRemaining}</td>
                               <td className="px-3 py-2 text-right">{d.cappedAmount}</td>
-                              <td className="px-3 py-2 text-right text-green-600">+{d.carriedForward}</td>
-                              <td className="px-3 py-2 text-right text-red-600">{d.expired > 0 ? `-${d.expired}` : '0'}</td>
+                              <td className="px-3 py-2 text-right text-accent-foreground">+{d.carriedForward}</td>
+                              <td className="px-3 py-2 text-right text-destructive">{d.expired > 0 ? `-${d.expired}` : '0'}</td>
                               <td className="px-3 py-2">{d.expiryDate ? new Date(d.expiryDate).toLocaleDateString() : '-'}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                       {carryForwardPreview.details.length > 50 && (
-                        <p className="text-sm text-gray-500 mt-2 text-center">
+                        <p className="text-sm text-muted-foreground mt-2 text-center">
                           Showing first 50 of {carryForwardPreview.details.length} records
                         </p>
                       )}
@@ -2545,10 +2610,10 @@ export default function HRManagerLeavesPage() {
                   </div>
                 )}
               </div>
-              <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+              <div className="bg-muted/30 px-6 py-4 flex justify-end gap-3">
                 <button
                   onClick={() => setShowPreviewModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted/30"
                 >
                   Close
                 </button>
@@ -2571,12 +2636,12 @@ export default function HRManagerLeavesPage() {
       {showReportModal && carryForwardReport && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowReportModal(false)}></div>
-            <div className="relative inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-4xl sm:w-full max-h-[80vh] overflow-y-auto">
-              <div className="bg-white px-6 pt-6 pb-4">
+            <div className="fixed inset-0 bg-muted bg-opacity-75 transition-opacity" onClick={() => setShowReportModal(false)}></div>
+            <div className="relative inline-block bg-card rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-4xl sm:w-full max-h-[80vh] overflow-y-auto">
+              <div className="bg-card px-6 pt-6 pb-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Carry-Forward Report</h3>
-                  <button onClick={() => setShowReportModal(false)} className="text-gray-400 hover:text-gray-500">
+                  <h3 className="text-lg font-semibold text-foreground">Carry-Forward Report</h3>
+                  <button onClick={() => setShowReportModal(false)} className="text-muted-foreground hover:text-muted-foreground">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -2585,26 +2650,26 @@ export default function HRManagerLeavesPage() {
 
                 {/* Summary */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="text-2xl font-bold text-blue-600">{carryForwardReport.summary?.totalEmployees || 0}</p>
-                    <p className="text-sm text-blue-700">Total Employees</p>
+                  <div className="bg-primary/10 rounded-lg p-4">
+                    <p className="text-2xl font-bold text-primary">{carryForwardReport.summary?.totalEmployees || 0}</p>
+                    <p className="text-sm text-primary">Total Employees</p>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <p className="text-2xl font-bold text-green-600">{carryForwardReport.summary?.totalCarryForward || 0}</p>
-                    <p className="text-sm text-green-700">Total Carry-Forward Days</p>
+                  <div className="bg-accent/10 rounded-lg p-4">
+                    <p className="text-2xl font-bold text-accent-foreground">{carryForwardReport.summary?.totalCarryForward || 0}</p>
+                    <p className="text-sm text-accent-foreground">Total Carry-Forward Days</p>
                   </div>
                 </div>
 
                 {/* By Leave Type */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Summary by Leave Type:</h4>
+                  <h4 className="text-sm font-medium text-foreground mb-2">Summary by Leave Type:</h4>
                   <div className="space-y-2">
                     {carryForwardReport.summary?.byLeaveType?.map((lt: { leaveTypeId: string; leaveTypeName: string; totalCarryForward: number; employeesWithCarryForward: number }) => (
-                      <div key={lt.leaveTypeId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={lt.leaveTypeId} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <span className="font-medium">{lt.leaveTypeName}</span>
                         <div className="flex gap-4 text-sm">
-                          <span className="text-green-600">{lt.totalCarryForward} days</span>
-                          <span className="text-gray-500">{lt.employeesWithCarryForward} employees</span>
+                          <span className="text-accent-foreground">{lt.totalCarryForward} days</span>
+                          <span className="text-muted-foreground">{lt.employeesWithCarryForward} employees</span>
                         </div>
                       </div>
                     ))}
@@ -2614,10 +2679,10 @@ export default function HRManagerLeavesPage() {
                 {/* Detailed Report */}
                 {carryForwardReport.report && carryForwardReport.report.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Current Entitlements:</h4>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Current Entitlements:</h4>
                     <div className="overflow-x-auto max-h-64">
                       <table className="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-muted/30">
                           <tr>
                             <th className="px-3 py-2 text-left">Employee</th>
                             <th className="px-3 py-2 text-left">Leave Type</th>
@@ -2630,12 +2695,12 @@ export default function HRManagerLeavesPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {carryForwardReport.report.slice(0, 50).map((r: { employeeId?: string; leaveTypeName: string; yearlyEntitlement: number; carryForward: number; taken: number; remaining: number; carryForwardExpiry?: string }, idx: number) => (
-                            <tr key={idx} className="hover:bg-gray-50">
+                            <tr key={idx} className="hover:bg-muted/30">
                               <td className="px-3 py-2 font-mono text-xs">{r.employeeId?.slice(-8)}</td>
                               <td className="px-3 py-2">{r.leaveTypeName}</td>
                               <td className="px-3 py-2 text-right">{r.yearlyEntitlement}</td>
-                              <td className="px-3 py-2 text-right text-green-600">{r.carryForward}</td>
-                              <td className="px-3 py-2 text-right text-red-600">{r.taken}</td>
+                              <td className="px-3 py-2 text-right text-accent-foreground">{r.carryForward}</td>
+                              <td className="px-3 py-2 text-right text-destructive">{r.taken}</td>
                               <td className="px-3 py-2 text-right font-medium">{r.remaining}</td>
                               <td className="px-3 py-2">{r.carryForwardExpiry ? new Date(r.carryForwardExpiry).toLocaleDateString() : '-'}</td>
                             </tr>
@@ -2646,10 +2711,10 @@ export default function HRManagerLeavesPage() {
                   </div>
                 )}
               </div>
-              <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <div className="bg-muted/30 px-6 py-4 flex justify-end">
                 <button
                   onClick={() => setShowReportModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted/30"
                 >
                   Close
                 </button>
@@ -2663,47 +2728,53 @@ export default function HRManagerLeavesPage() {
       {showOverrideModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowOverrideModal(false)}></div>
-            <div className="relative inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+            <div className="fixed inset-0 bg-muted bg-opacity-75 transition-opacity" onClick={() => setShowOverrideModal(false)}></div>
+            <div className="relative inline-block bg-card rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
               <form onSubmit={handleOverrideCarryForward}>
-                <div className="bg-white px-6 pt-6 pb-4">
+                <div className="bg-card px-6 pt-6 pb-4">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Override Carry-Forward</h3>
-                      <p className="text-sm text-gray-500">Manually adjust carry-forward for a specific employee</p>
+                      <h3 className="text-lg font-semibold text-foreground">Override Carry-Forward</h3>
+                      <p className="text-sm text-muted-foreground">Manually adjust carry-forward for a specific employee</p>
                     </div>
                   </div>
 
                   {/* Error display inside modal */}
                   {error && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                    <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
                       {error}
                     </div>
                   )}
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-                      <input
-                        type="text"
+                      <label className="block text-sm font-medium text-foreground mb-1">Select Employee *</label>
+                      <select
                         value={overrideForm.employeeId}
                         onChange={(e) => setOverrideForm({ ...overrideForm, employeeId: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Enter employee ID"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         required
-                      />
+                        disabled={loadingEmployees}
+                      >
+                        <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                        {employees.map((emp) => (
+                          <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                            {getEmployeeDisplayName(emp)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Leave Type *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Leave Type *</label>
                       <select
                         value={overrideForm.leaveTypeId}
                         onChange={(e) => setOverrideForm({ ...overrideForm, leaveTypeId: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         required
                       >
                         <option value="">Select leave type</option>
@@ -2715,36 +2786,36 @@ export default function HRManagerLeavesPage() {
                         ))}
                       </select>
                       {leaveTypes.length === 0 && (
-                        <p className="text-xs text-amber-600 mt-1">No leave types loaded. Please wait or refresh the page.</p>
+                        <p className="text-xs text-warning mt-1">No leave types loaded. Please wait or refresh the page.</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Carry-Forward Days *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Carry-Forward Days *</label>
                       <input
                         type="number"
                         min="0"
                         step="0.5"
                         value={overrideForm.carryForwardDays}
                         onChange={(e) => setOverrideForm({ ...overrideForm, carryForwardDays: parseFloat(e.target.value) || 0 })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Expiry Date</label>
                       <input
                         type="date"
                         value={overrideForm.expiryDate}
                         onChange={(e) => setOverrideForm({ ...overrideForm, expiryDate: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Reason *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Reason *</label>
                       <textarea
                         value={overrideForm.reason}
                         onChange={(e) => setOverrideForm({ ...overrideForm, reason: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                         rows={3}
                         placeholder="Provide a reason for this override"
                         required
@@ -2752,18 +2823,18 @@ export default function HRManagerLeavesPage() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <div className="bg-muted/30 px-6 py-4 flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setShowOverrideModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted/30"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={accrualRunning}
-                    className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-white bg-warning rounded-lg hover:bg-warning disabled:opacity-50"
                   >
                     {accrualRunning ? 'Applying...' : 'Apply Override'}
                   </button>
@@ -2778,47 +2849,53 @@ export default function HRManagerLeavesPage() {
       {showSuspensionModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowSuspensionModal(false)}></div>
-            <div className="relative inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-xl sm:w-full">
+            <div className="fixed inset-0 bg-muted bg-opacity-75 transition-opacity" onClick={() => setShowSuspensionModal(false)}></div>
+            <div className="relative inline-block bg-card rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-xl sm:w-full">
               <form onSubmit={handleApplySuspension}>
-                <div className="bg-white px-6 pt-6 pb-4">
+                <div className="bg-card px-6 pt-6 pb-4">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Accrual Suspension</h3>
-                      <p className="text-sm text-gray-500">Adjust accrual for unpaid leave or long absence</p>
+                      <h3 className="text-lg font-semibold text-foreground">Accrual Suspension</h3>
+                      <p className="text-sm text-muted-foreground">Adjust accrual for unpaid leave or long absence</p>
                     </div>
                   </div>
 
                   {/* Error display inside modal */}
                   {error && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                    <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
                       {error}
                     </div>
                   )}
 
                   <div className="space-y-4">
-                    {/* Employee ID */}
+                    {/* Employee Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Select Employee *</label>
                       <div className="flex gap-2">
-                        <input
-                          type="text"
+                        <select
                           value={suspensionForm.employeeId}
                           onChange={(e) => setSuspensionForm({ ...suspensionForm, employeeId: e.target.value })}
-                          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                          placeholder="Enter employee ID"
+                          className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                           required
-                        />
+                          disabled={loadingEmployees}
+                        >
+                          <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                          {employees.map((emp) => (
+                            <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                              {getEmployeeDisplayName(emp)}
+                            </option>
+                          ))}
+                        </select>
                         <button
                           type="button"
                           onClick={() => checkEmployeeAbsences(suspensionForm.employeeId)}
                           disabled={!suspensionForm.employeeId || loading}
-                          className="px-3 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                          className="px-3 py-2.5 text-sm font-medium text-muted-foreground bg-muted rounded-lg hover:bg-accent disabled:opacity-50"
                         >
                           Check Absences
                         </button>
@@ -2827,11 +2904,11 @@ export default function HRManagerLeavesPage() {
 
                     {/* Leave Type */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Leave Type to Adjust *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Leave Type to Adjust *</label>
                       <select
                         value={suspensionForm.leaveTypeId}
                         onChange={(e) => setSuspensionForm({ ...suspensionForm, leaveTypeId: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         required
                       >
                         <option value="">Select leave type</option>
@@ -2839,34 +2916,34 @@ export default function HRManagerLeavesPage() {
                           <option key={lt._id || lt.id} value={lt._id || lt.id}>{lt.name}</option>
                         ))}
                       </select>
-                      <p className="text-xs text-gray-500 mt-1">Select which leave type&apos;s accrual to adjust (usually Annual Leave)</p>
+                      <p className="text-xs text-muted-foreground mt-1">Select which leave type&apos;s accrual to adjust (usually Annual Leave)</p>
                     </div>
 
                     {/* Suspension Type */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Suspension Type *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Suspension Type *</label>
                       <div className="grid grid-cols-2 gap-3">
                         <button
                           type="button"
                           onClick={() => setSuspensionForm({ ...suspensionForm, suspensionType: 'unpaid' })}
                           className={`p-3 rounded-lg border-2 text-left transition-colors ${suspensionForm.suspensionType === 'unpaid'
-                            ? 'border-red-500 bg-red-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-destructive bg-destructive/10'
+                            : 'border-border hover:border-border'
                             }`}
                         >
-                          <span className="block font-medium text-gray-900">Unpaid Leave</span>
-                          <span className="text-xs text-gray-500">5+ consecutive working days</span>
+                          <span className="block font-medium text-foreground">Unpaid Leave</span>
+                          <span className="text-xs text-muted-foreground">5+ consecutive working days</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setSuspensionForm({ ...suspensionForm, suspensionType: 'long_absence' })}
                           className={`p-3 rounded-lg border-2 text-left transition-colors ${suspensionForm.suspensionType === 'long_absence'
-                            ? 'border-orange-500 bg-orange-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-warning bg-warning/10'
+                            : 'border-border hover:border-border'
                             }`}
                         >
-                          <span className="block font-medium text-gray-900">Long Absence</span>
-                          <span className="text-xs text-gray-500">30+ consecutive calendar days</span>
+                          <span className="block font-medium text-foreground">Long Absence</span>
+                          <span className="text-xs text-muted-foreground">30+ consecutive calendar days</span>
                         </button>
                       </div>
                     </div>
@@ -2874,7 +2951,7 @@ export default function HRManagerLeavesPage() {
                     {/* Date Range */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">From Date *</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">From Date *</label>
                         <input
                           type="date"
                           value={suspensionForm.fromDate}
@@ -2882,12 +2959,12 @@ export default function HRManagerLeavesPage() {
                             setSuspensionForm({ ...suspensionForm, fromDate: e.target.value });
                             setSuspensionPreview(null);
                           }}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">To Date *</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">To Date *</label>
                         <input
                           type="date"
                           value={suspensionForm.toDate}
@@ -2895,7 +2972,7 @@ export default function HRManagerLeavesPage() {
                             setSuspensionForm({ ...suspensionForm, toDate: e.target.value });
                             setSuspensionPreview(null);
                           }}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                           required
                         />
                       </div>
@@ -2906,35 +2983,35 @@ export default function HRManagerLeavesPage() {
                       type="button"
                       onClick={handlePreviewSuspension}
                       disabled={!suspensionForm.fromDate || !suspensionForm.toDate}
-                      className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                      className="w-full px-4 py-2 text-sm font-medium text-foreground bg-muted/50 rounded-lg hover:bg-muted disabled:opacity-50"
                     >
                       Calculate Adjustment
                     </button>
 
                     {/* Preview Results */}
                     {suspensionPreview && (
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">Calculated Adjustment</h4>
+                      <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                        <h4 className="text-sm font-medium text-foreground mb-3">Calculated Adjustment</h4>
                         <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="p-2 bg-white rounded">
-                            <span className="text-gray-500">Total Days:</span>
+                          <div className="p-2 bg-card rounded">
+                            <span className="text-muted-foreground">Total Days:</span>
                             <span className="float-right font-medium">{suspensionPreview.totalDays}</span>
                           </div>
-                          <div className="p-2 bg-white rounded">
-                            <span className="text-gray-500">Working Days:</span>
+                          <div className="p-2 bg-card rounded">
+                            <span className="text-muted-foreground">Working Days:</span>
                             <span className="float-right font-medium">{suspensionPreview.workingDays}</span>
                           </div>
-                          <div className="p-2 bg-white rounded">
-                            <span className="text-gray-500">Prorate Ratio:</span>
+                          <div className="p-2 bg-card rounded">
+                            <span className="text-muted-foreground">Prorate Ratio:</span>
                             <span className="float-right font-medium">{Math.round(suspensionPreview.prorateRatio * 100)}%</span>
                           </div>
-                          <div className="p-2 bg-white rounded">
-                            <span className="text-gray-500">Original Accrual:</span>
+                          <div className="p-2 bg-card rounded">
+                            <span className="text-muted-foreground">Original Accrual:</span>
                             <span className="float-right font-medium">{suspensionPreview.originalAccrual} days</span>
                           </div>
-                          <div className="col-span-2 p-2 bg-red-50 rounded border border-red-200">
-                            <span className="text-red-700">Days to Deduct:</span>
-                            <span className="float-right font-bold text-red-700">{suspensionForm.adjustmentDays} days</span>
+                          <div className="col-span-2 p-2 bg-destructive/10 rounded border border-destructive/20">
+                            <span className="text-destructive">Days to Deduct:</span>
+                            <span className="float-right font-bold text-destructive">{suspensionForm.adjustmentDays} days</span>
                           </div>
                         </div>
                       </div>
@@ -2942,26 +3019,26 @@ export default function HRManagerLeavesPage() {
 
                     {/* Manual Adjustment Override */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Days to Deduct *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Days to Deduct *</label>
                       <input
                         type="number"
                         min="0"
                         step="0.25"
                         value={suspensionForm.adjustmentDays}
                         onChange={(e) => setSuspensionForm({ ...suspensionForm, adjustmentDays: parseFloat(e.target.value) || 0 })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         required
                       />
-                      <p className="text-xs text-gray-500 mt-1">Auto-calculated or manually override</p>
+                      <p className="text-xs text-muted-foreground mt-1">Auto-calculated or manually override</p>
                     </div>
 
                     {/* Reason */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Reason *</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Reason *</label>
                       <textarea
                         value={suspensionForm.reason}
                         onChange={(e) => setSuspensionForm({ ...suspensionForm, reason: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                         rows={2}
                         placeholder="e.g., Employee on unpaid leave for personal reasons"
                         required
@@ -2969,7 +3046,7 @@ export default function HRManagerLeavesPage() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <div className="bg-muted/30 px-6 py-4 flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -2977,14 +3054,14 @@ export default function HRManagerLeavesPage() {
                       setSuspensionPreview(null);
                       setError(null);
                     }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted/30"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={accrualRunning || suspensionForm.adjustmentDays <= 0}
-                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-white bg-destructive rounded-lg hover:bg-destructive disabled:opacity-50"
                   >
                     {accrualRunning ? 'Applying...' : 'Apply Suspension'}
                   </button>
@@ -2999,48 +3076,54 @@ export default function HRManagerLeavesPage() {
       {showPayrollSyncModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowPayrollSyncModal(false)}></div>
-            <div className="relative inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-xl sm:w-full">
+            <div className="fixed inset-0 bg-muted bg-opacity-75 transition-opacity" onClick={() => setShowPayrollSyncModal(false)}></div>
+            <div className="relative inline-block bg-card rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-xl sm:w-full">
               <form onSubmit={handleGeneratePayrollSync}>
-                <div className="bg-white px-6 pt-6 pb-4">
+                <div className="bg-card px-6 pt-6 pb-4">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Payroll Sync</h3>
-                      <p className="text-sm text-gray-500">Generate payroll data for salary deductions</p>
+                      <h3 className="text-lg font-semibold text-foreground">Payroll Sync</h3>
+                      <p className="text-sm text-muted-foreground">Generate payroll data for salary deductions</p>
                     </div>
                   </div>
 
                   {error && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                    <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
                       {error}
                     </div>
                   )}
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-                      <input
-                        type="text"
+                      <label className="block text-sm font-medium text-foreground mb-1">Select Employee *</label>
+                      <select
                         value={payrollSyncForm.employeeId}
                         onChange={(e) => setPayrollSyncForm({ ...payrollSyncForm, employeeId: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Enter employee ID"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         required
-                      />
+                        disabled={loadingEmployees}
+                      >
+                        <option value="">{loadingEmployees ? 'Loading employees...' : 'Select an employee'}</option>
+                        {employees.map((emp) => (
+                          <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                            {getEmployeeDisplayName(emp)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Year *</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Year *</label>
                         <select
                           value={payrollSyncForm.year}
                           onChange={(e) => setPayrollSyncForm({ ...payrollSyncForm, year: parseInt(e.target.value) })}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                           <option value={2024}>2024</option>
                           <option value={2025}>2025</option>
@@ -3048,11 +3131,11 @@ export default function HRManagerLeavesPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Month *</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Month *</label>
                         <select
                           value={payrollSyncForm.month}
                           onChange={(e) => setPayrollSyncForm({ ...payrollSyncForm, month: parseInt(e.target.value) })}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                           <option value={1}>January</option>
                           <option value={2}>February</option>
@@ -3072,26 +3155,26 @@ export default function HRManagerLeavesPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Base Salary ($) *</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Base Salary ($) *</label>
                         <input
                           type="number"
                           min="0"
                           step="100"
                           value={payrollSyncForm.baseSalary}
                           onChange={(e) => setPayrollSyncForm({ ...payrollSyncForm, baseSalary: parseFloat(e.target.value) || 0 })}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Work Days in Month *</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Work Days in Month *</label>
                         <input
                           type="number"
                           min="1"
                           max="31"
                           value={payrollSyncForm.workDaysInMonth}
                           onChange={(e) => setPayrollSyncForm({ ...payrollSyncForm, workDaysInMonth: parseInt(e.target.value) || 22 })}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                           required
                         />
                       </div>
@@ -3100,17 +3183,17 @@ export default function HRManagerLeavesPage() {
                     <button
                       type="button"
                       onClick={handleQuickCalculateDeduction}
-                      className="w-full px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100"
+                      className="w-full px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/10"
                     >
                       Preview Daily Rate
                     </button>
 
-                    <div className="p-3 bg-gray-50 rounded-lg text-sm">
-                      <p className="font-medium text-gray-700 mb-1">Deduction Formula:</p>
-                      <code className="text-xs text-gray-600">
+                    <div className="p-3 bg-muted/30 rounded-lg text-sm">
+                      <p className="font-medium text-foreground mb-1">Deduction Formula:</p>
+                      <code className="text-xs text-muted-foreground">
                         Deduction = (Base Salary ÷ Work Days) × Unpaid Leave Days
                       </code>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         Daily Rate = ${payrollSyncForm.baseSalary > 0 && payrollSyncForm.workDaysInMonth > 0
                           ? (payrollSyncForm.baseSalary / payrollSyncForm.workDaysInMonth).toFixed(2)
                           : '0.00'}
@@ -3118,23 +3201,23 @@ export default function HRManagerLeavesPage() {
                     </div>
 
                     {payrollSyncResult && payrollSyncResult.ok && (
-                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <h4 className="text-sm font-medium text-green-800 mb-2">Sync Result</h4>
-                        <div className="space-y-2 text-sm text-green-700">
+                      <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                        <h4 className="text-sm font-medium text-accent-foreground mb-2">Sync Result</h4>
+                        <div className="space-y-2 text-sm text-accent-foreground">
                           <div className="flex justify-between">
                             <span>Unpaid Leave Days:</span>
                             <span className="font-medium">{payrollSyncResult.unpaidLeaveDeduction.totalDays}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Total Deduction:</span>
-                            <span className="font-medium text-red-600">${payrollSyncResult.unpaidLeaveDeduction.deductionAmount.toFixed(2)}</span>
+                            <span className="font-medium text-destructive">${payrollSyncResult.unpaidLeaveDeduction.deductionAmount.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Formula:</span>
                             <span className="font-mono text-xs">{payrollSyncResult.unpaidLeaveDeduction.formula || 'N/A'}</span>
                           </div>
                           {payrollSyncResult.unpaidLeaveDeduction.leaves.length > 0 && (
-                            <div className="mt-2 pt-2 border-t border-green-200">
+                            <div className="mt-2 pt-2 border-t border-accent/20">
                               <p className="font-medium mb-1">Unpaid Leave Records:</p>
                               {payrollSyncResult.unpaidLeaveDeduction.leaves.map((leave, idx) => (
                                 <div key={idx} className="text-xs flex justify-between">
@@ -3149,21 +3232,21 @@ export default function HRManagerLeavesPage() {
                     )}
                   </div>
                 </div>
-                <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <div className="bg-muted/30 px-6 py-4 flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       setShowPayrollSyncModal(false);
                       setError(null);
                     }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted/30"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={payrollSyncLoading || !payrollSyncForm.employeeId}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary disabled:opacity-50"
                   >
                     {payrollSyncLoading ? 'Syncing...' : 'Generate Sync Data'}
                   </button>
@@ -3178,24 +3261,24 @@ export default function HRManagerLeavesPage() {
       {showFinalizeModal && finalizeRequest && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => !finalizeLoading && setShowFinalizeModal(false)}></div>
-            <div className="relative inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
-              <div className="bg-white px-6 pt-6 pb-4">
+            <div className="fixed inset-0 bg-muted bg-opacity-75 transition-opacity" onClick={() => !finalizeLoading && setShowFinalizeModal(false)}></div>
+            <div className="relative inline-block bg-card rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+              <div className="bg-card px-6 pt-6 pb-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${finalizeDecision === 'approve' ? 'bg-green-100' : 'bg-red-100'
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${finalizeDecision === 'approve' ? 'bg-accent/10' : 'bg-destructive/10'
                     }`}>
                     {finalizeDecision === 'approve' ? (
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     ) : (
-                      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-6 h-6 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {(() => {
                         const wasAlreadyApproved = finalizeRequest.status === 'APPROVED' || finalizeRequest.status === 'approved';
                         if (finalizeDecision === 'approve') {
@@ -3204,7 +3287,7 @@ export default function HRManagerLeavesPage() {
                         return 'Reject Leave Request';
                       })()}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {(() => {
                         const wasAlreadyApproved = finalizeRequest.status === 'APPROVED' || finalizeRequest.status === 'approved';
                         if (finalizeDecision === 'approve') {
@@ -3219,39 +3302,39 @@ export default function HRManagerLeavesPage() {
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
                     {error}
                   </div>
                 )}
 
                 {/* Request Details */}
-                <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Request Details</h4>
+                <div className="mb-4 p-4 bg-muted/30 rounded-lg">
+                  <h4 className="text-sm font-medium text-foreground mb-2">Request Details</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Employee:</span>
+                      <span className="text-muted-foreground">Employee:</span>
                       <span className="font-medium">{finalizeRequest.employeeName || finalizeRequest.employeeId || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Leave Type:</span>
+                      <span className="text-muted-foreground">Leave Type:</span>
                       <span className="font-medium">{finalizeRequest.leaveTypeName || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Duration:</span>
+                      <span className="text-muted-foreground">Duration:</span>
                       <span className="font-medium">{finalizeRequest.durationDays || 0} day(s)</span>
                     </div>
                     {finalizeRequest.dates && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Dates:</span>
+                        <span className="text-muted-foreground">Dates:</span>
                         <span className="font-medium">
                           {finalizeRequest.dates.from ? new Date(finalizeRequest.dates.from).toLocaleDateString() : 'N/A'} - {finalizeRequest.dates.to ? new Date(finalizeRequest.dates.to).toLocaleDateString() : 'N/A'}
                         </span>
                       </div>
                     )}
                     {finalizeRequest.justification && (
-                      <div className="pt-2 border-t border-gray-200">
-                        <span className="text-gray-500">Reason:</span>
-                        <p className="mt-1 text-gray-700">{finalizeRequest.justification}</p>
+                      <div className="pt-2 border-t border-border">
+                        <span className="text-muted-foreground">Reason:</span>
+                        <p className="mt-1 text-foreground">{finalizeRequest.justification}</p>
                       </div>
                     )}
                   </div>
@@ -3285,11 +3368,11 @@ export default function HRManagerLeavesPage() {
 
                       if (shouldShowOverride) {
                         return (
-                          <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
                               <div>
                                 <p className="text-sm font-medium text-orange-900">Override Manager Decision</p>
-                                <p className="text-xs text-orange-700">
+                                <p className="text-xs text-warning">
                                   {isOverridingRejection
                                     ? 'This request was rejected by the manager. You are overriding to approve.'
                                     : 'This request was approved by the manager. You are overriding to reject.'}
@@ -3302,7 +3385,7 @@ export default function HRManagerLeavesPage() {
                                   onChange={(e) => setFinalizeOptions({ ...finalizeOptions, isOverride: e.target.checked, overrideReason: e.target.checked ? finalizeOptions.overrideReason : '' })}
                                   className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                                <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-warning"></div>
                               </label>
                             </div>
                             {finalizeOptions.isOverride && (
@@ -3311,7 +3394,7 @@ export default function HRManagerLeavesPage() {
                                 <textarea
                                   value={finalizeOptions.overrideReason}
                                   onChange={(e) => setFinalizeOptions({ ...finalizeOptions, overrideReason: e.target.value })}
-                                  className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm resize-none"
+                                  className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-sm resize-none"
                                   rows={3}
                                   placeholder="Please provide a reason for overriding the manager's decision..."
                                   required
@@ -3325,10 +3408,10 @@ export default function HRManagerLeavesPage() {
                     })()}
 
                     {/* Payroll Sync Option */}
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
                       <div>
                         <p className="text-sm font-medium text-blue-900">Sync with Payroll</p>
-                        <p className="text-xs text-blue-700">Calculate salary deduction for unpaid leave</p>
+                        <p className="text-xs text-primary">Calculate salary deduction for unpaid leave</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -3337,7 +3420,7 @@ export default function HRManagerLeavesPage() {
                           onChange={(e) => setFinalizeOptions({ ...finalizeOptions, syncPayroll: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                       </label>
                     </div>
 
@@ -3345,30 +3428,30 @@ export default function HRManagerLeavesPage() {
                     {finalizeOptions.syncPayroll && (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Base Salary ($)</label>
+                          <label className="block text-sm font-medium text-foreground mb-1">Base Salary ($)</label>
                           <input
                             type="number"
                             value={finalizeOptions.baseSalary}
                             onChange={(e) => setFinalizeOptions({ ...finalizeOptions, baseSalary: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Work Days/Month</label>
+                          <label className="block text-sm font-medium text-foreground mb-1">Work Days/Month</label>
                           <input
                             type="number"
                             value={finalizeOptions.workDaysInMonth}
                             onChange={(e) => setFinalizeOptions({ ...finalizeOptions, workDaysInMonth: parseInt(e.target.value) || 22 })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
                       </div>
                     )}
 
                     {/* Impact Preview */}
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm font-medium text-amber-800 mb-1">Impact Preview</p>
-                      <ul className="text-xs text-amber-700 space-y-1">
+                    <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                      <p className="text-sm font-medium text-warning mb-1">Impact Preview</p>
+                      <ul className="text-xs text-warning space-y-1">
                         {(() => {
                           const wasAlreadyApproved = finalizeRequest.status === 'APPROVED' || finalizeRequest.status === 'approved';
                           const items = [];
@@ -3396,11 +3479,11 @@ export default function HRManagerLeavesPage() {
                 {/* Rejection Reason */}
                 {finalizeDecision === 'reject' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Rejection *</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Reason for Rejection *</label>
                     <textarea
                       value={finalizeOptions.rejectReason}
                       onChange={(e) => setFinalizeOptions({ ...finalizeOptions, rejectReason: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm resize-none"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-sm resize-none"
                       rows={3}
                       placeholder="Please provide a reason for rejecting this request..."
                       required
@@ -3410,17 +3493,17 @@ export default function HRManagerLeavesPage() {
 
                 {/* Finalization Result */}
                 {finalizeResult && (
-                  <div className={`mt-4 p-4 rounded-lg ${finalizeResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                    <p className={`text-sm font-medium ${finalizeResult.ok ? 'text-green-800' : 'text-red-800'}`}>
+                  <div className={`mt-4 p-4 rounded-lg ${finalizeResult.ok ? 'bg-accent/10 border border-accent/20' : 'bg-destructive/10 border border-destructive/20'}`}>
+                    <p className={`text-sm font-medium ${finalizeResult.ok ? 'text-accent-foreground' : 'text-destructive'}`}>
                       {finalizeResult.message}
                     </p>
                     {finalizeResult.balanceUpdate && (
-                      <div className="mt-2 text-xs text-green-700">
+                      <div className="mt-2 text-xs text-accent-foreground">
                         <p>Balance Updated: {finalizeResult.balanceUpdate.previousBalance} → {finalizeResult.balanceUpdate.newBalance} days</p>
                       </div>
                     )}
                     {finalizeResult.payrollImpact && finalizeResult.payrollImpact.isUnpaidLeave && (
-                      <div className="mt-2 text-xs text-green-700">
+                      <div className="mt-2 text-xs text-accent-foreground">
                         <p>Payroll Deduction: ${finalizeResult.payrollImpact.deductionAmount}</p>
                         <p>Formula: {finalizeResult.payrollImpact.formula}</p>
                       </div>
@@ -3429,7 +3512,7 @@ export default function HRManagerLeavesPage() {
                 )}
               </div>
 
-              <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+              <div className="bg-muted/30 px-6 py-4 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -3439,7 +3522,7 @@ export default function HRManagerLeavesPage() {
                     setError(null);
                   }}
                   disabled={finalizeLoading}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted/30 disabled:opacity-50"
                 >
                   {finalizeResult ? 'Close' : 'Cancel'}
                 </button>
@@ -3452,8 +3535,8 @@ export default function HRManagerLeavesPage() {
                       (finalizeDecision === 'approve' && finalizeOptions.isOverride && !finalizeOptions.overrideReason.trim())
                     }
                     className={`px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 ${finalizeDecision === 'approve'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-red-600 hover:bg-red-700'
+                      ? 'bg-accent hover:bg-accent'
+                      : 'bg-destructive hover:bg-destructive'
                       }`}
                   >
                     {finalizeLoading
@@ -3476,18 +3559,18 @@ export default function HRManagerLeavesPage() {
       {/* Medical Document Verification Modal (REQ-028) */}
       {showMedicalVerificationModal && selectedMedicalAttachment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-foreground">
                   {medicalModalMode === 'verify' ? 'Verify Medical Document' : 'View Medical Document'}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {selectedMedicalAttachment.employeeName} - {selectedMedicalAttachment.leaveTypeName}
                 </p>
                 {selectedMedicalAttachment.dates && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Leave Period: {new Date(selectedMedicalAttachment.dates.from).toLocaleDateString()} to {new Date(selectedMedicalAttachment.dates.to).toLocaleDateString()}
                   </p>
                 )}
@@ -3499,7 +3582,7 @@ export default function HRManagerLeavesPage() {
                   setMedicalAttachmentData(null);
                   setError(null);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-foreground hover:text-muted-foreground transition-colors"
                 disabled={verifyingMedical}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3513,20 +3596,20 @@ export default function HRManagerLeavesPage() {
               {medicalAttachmentData ? (
                 <div className="space-y-4">
                   {/* Document Info */}
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-muted/30 rounded-lg p-4">
                     <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                       <div>
-                        <span className="font-medium text-gray-700">File Name:</span>
-                        <p className="text-gray-900 mt-1">{medicalAttachmentData.originalName || 'N/A'}</p>
+                        <span className="font-medium text-foreground">File Name:</span>
+                        <p className="text-foreground mt-1">{medicalAttachmentData.originalName || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-700">File Type:</span>
-                        <p className="text-gray-900 mt-1">{medicalAttachmentData.fileType || 'N/A'}</p>
+                        <span className="font-medium text-foreground">File Type:</span>
+                        <p className="text-foreground mt-1">{medicalAttachmentData.fileType || 'N/A'}</p>
                       </div>
                       {medicalAttachmentData.size && (
                         <div>
-                          <span className="font-medium text-gray-700">File Size:</span>
-                          <p className="text-gray-900 mt-1">{(medicalAttachmentData.size / 1024).toFixed(2)} KB</p>
+                          <span className="font-medium text-foreground">File Size:</span>
+                          <p className="text-foreground mt-1">{(medicalAttachmentData.size / 1024).toFixed(2)} KB</p>
                         </div>
                       )}
                     </div>
@@ -3565,13 +3648,13 @@ export default function HRManagerLeavesPage() {
 
                       return (
                         <div className="space-y-2">
-                          <div className="flex gap-2 pt-3 border-t border-gray-200">
+                          <div className="flex gap-2 pt-3 border-t border-border">
                             <a
                               href={downloadUrl}
                               download={isExternalUrl || isDataUrl ? undefined : (medicalAttachmentData.originalName || 'document')}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+                              className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary rounded-lg transition-colors flex items-center gap-2"
                               onClick={() => {
                                 // If it's a static path that might not exist, show a message
                                 if (showWarning && !isExternalUrl && !isDataUrl) {
@@ -3590,7 +3673,7 @@ export default function HRManagerLeavesPage() {
                               href={downloadUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
+                              className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border hover:bg-muted/30 rounded-lg transition-colors flex items-center gap-2"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -3598,7 +3681,7 @@ export default function HRManagerLeavesPage() {
                               Open in New Tab
                             </a>
                             {isExternalUrl && (
-                              <span className="px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded">
+                              <span className="px-2 py-1 text-xs text-muted-foreground bg-muted/50 rounded">
                                 External Link
                               </span>
                             )}
@@ -3634,8 +3717,8 @@ export default function HRManagerLeavesPage() {
                     }
 
                     return (
-                      <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                        <div className="p-4 bg-white">
+                      <div className="border border-border rounded-lg overflow-hidden bg-muted/30">
+                        <div className="p-4 bg-card">
                           {isDataUrl ? (
                             // Data URL - display directly
                             medicalAttachmentData.fileType?.toLowerCase().includes('image') ? (
@@ -3653,7 +3736,7 @@ export default function HRManagerLeavesPage() {
                                 title="Medical Document"
                               />
                             ) : (
-                              <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
                                 <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
@@ -3662,7 +3745,7 @@ export default function HRManagerLeavesPage() {
                                   href={previewUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="mt-2 text-blue-600 hover:text-blue-800 text-sm underline"
+                                  className="mt-2 text-primary hover:text-primary text-sm underline"
                                 >
                                   Open in browser →
                                 </a>
@@ -3670,34 +3753,34 @@ export default function HRManagerLeavesPage() {
                             )
                           ) : isExternalUrl ? (
                             // External URL - show link
-                            <div className="flex flex-col items-center justify-center h-64 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                              <svg className="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+                              <svg className="w-16 h-16 mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                               </svg>
                               <p className="text-sm font-medium mb-2">External Document Link</p>
-                              <p className="text-xs text-gray-400 mb-4 text-center px-4 break-all">{filePath}</p>
+                              <p className="text-xs text-muted-foreground mb-4 text-center px-4 break-all">{filePath}</p>
                               <a
                                 href={filePath}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary rounded-lg transition-colors"
                               >
                                 Open External Link
                               </a>
                             </div>
                           ) : (
                             // Server file - show preview placeholder
-                            <div className="flex flex-col items-center justify-center h-64 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                              <svg className="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+                              <svg className="w-16 h-16 mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
                               <p className="text-sm font-medium mb-2">Document Preview</p>
-                              <p className="text-xs text-gray-400 mb-4">Click the buttons above to download or open the document</p>
+                              <p className="text-xs text-muted-foreground mb-4">Click the buttons above to download or open the document</p>
                               <a
                                 href={previewUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                className="text-xs text-primary hover:text-primary underline"
                               >
                                 View in browser →
                               </a>
@@ -3709,14 +3792,14 @@ export default function HRManagerLeavesPage() {
                   })()}
 
                   {/* Verification Notice */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                     <div className="flex items-start">
-                      <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                       </svg>
-                      <div className="text-sm text-blue-800">
+                      <div className="text-sm text-primary">
                         <p className="font-medium mb-1">Verification Guidelines</p>
-                        <ul className="list-disc list-inside space-y-1 text-blue-700">
+                        <ul className="list-disc list-inside space-y-1 text-primary">
                           <li>Review the medical document carefully</li>
                           <li>Ensure it is a legitimate medical certificate</li>
                           <li>Verify dates match the leave request period</li>
@@ -3730,14 +3813,14 @@ export default function HRManagerLeavesPage() {
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading document...</p>
+                    <p className="text-muted-foreground">Loading document...</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-border bg-muted/30 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -3747,7 +3830,7 @@ export default function HRManagerLeavesPage() {
                   setError(null);
                 }}
                 disabled={verifyingMedical}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted/30 disabled:opacity-50"
               >
                 Close
               </button>
@@ -3757,7 +3840,7 @@ export default function HRManagerLeavesPage() {
                   type="button"
                   onClick={handleVerifyMedicalDocument}
                   disabled={verifyingMedical || !medicalAttachmentData}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 text-sm font-medium text-white bg-accent hover:bg-accent rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {verifyingMedical ? (
                     <>
