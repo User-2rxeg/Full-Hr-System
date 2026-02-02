@@ -1,7 +1,8 @@
 "use client"
 
 import Link from 'next/link'
-import { ArrowRight, Play, Star, Sparkles } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, Play, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DotPattern } from '@/components/dot-pattern'
@@ -37,7 +38,7 @@ export function HeroSection() {
           {/* Main Headline */}
           <div className="relative mb-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
             <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl flex flex-col items-center">
-              <span>HR Management</span>
+              <span className="text-primary">HR Management</span>
               <span className="relative mt-2">
                 <span className="absolute -inset-2 bg-gradient-to-r from-primary to-blue-600 blur-2xl opacity-20 rounded-full"></span>
                 <span className="relative bg-gradient-to-r from-primary via-blue-500 to-indigo-600 bg-clip-text text-transparent pb-2">
@@ -97,20 +98,15 @@ export function HeroSection() {
             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 w-[80%] h-40 bg-primary/30 rounded-full blur-[80px] opacity-60"></div>
 
             <div className="relative rounded-2xl border border-white/10 bg-black/5 dark:bg-white/5 backdrop-blur-sm p-2 shadow-2xl ring-1 ring-white/10">
-              <div className="relative rounded-xl overflow-hidden bg-background aspect-[16/9] shadow-inner border border-border/50">
-                {/* This would be where an actual Dashboard screenshot goes. For now, a CSS mock representation */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center">
-                  <div className="text-center p-12 transform group-hover:scale-105 transition-transform duration-700 ease-out">
-                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-tr from-primary to-blue-600 shadow-xl shadow-primary/20 mb-6 text-white animate-bounce-slow">
-                      <Star className="w-12 h-12 fill-white/20" />
-                    </div>
-                    <h3 className="text-3xl font-bold mb-3 tracking-tight">Interactive Dashboard</h3>
-                    <p className="text-muted-foreground text-lg max-w-md mx-auto">Experience the future of work with our state-of-the-art interface designed for clarity and speed.</p>
-
-                    {/* Decorative elements simulating UI */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-50"></div>
-                  </div>
-                </div>
+              <div className="relative rounded-xl overflow-hidden bg-background shadow-inner border border-border/50">
+                <Image
+                  src="/dashboard-preview.png"
+                  alt="HR Management System Dashboard"
+                  width={3700}
+                  height={2500}
+                  className="w-full h-auto"
+                  priority
+                />
 
                 {/* Glass overlay reflection */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
