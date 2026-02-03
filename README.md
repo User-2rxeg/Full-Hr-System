@@ -224,3 +224,30 @@ The workflow represents the logical progression of activities through three inte
 *   **Phase 3 – Disputes and Claim Approval/Rejection:** Payroll Specialist and Manager review employee claims.
 *   **Phase 4 – Refund Process:** Finance generates refunds for approved disputes, processed in the next cycle.
 **Outcome:** Transparent ecosystem where employees have full visibility and recourse.
+
+---
+
+## Contributors
+
+*   **[Eyad Ahmed](https://github.com/User-2rxeg)** (@User-2rxeg)
+*   **[Manuel Youssef Kevorkian](https://github.com/kevorkian-mano)** (@kevorkian-mano)
+*   **[Osama Loay](https://github.com/osamaloay)** (@osamaloay)
+*   **[Ayten Asser](https://github.com/aytenaaser)** (@aytenaaser)
+*   **[Yasmin Farag](https://github.com/Yasmin-Farag)** (@Yasmin-Farag)
+*   **[Chantal Sherif](https://github.com/ChantalSherif)** (@ChantalSherif)
+*   **[Youstina Raof](https://github.com/Youstina-Raouf)** (@Youstina-Raouf)
+*   **[Dareen Ahmed](https://github.com/dareen-soliman)** (@dareen-soliman)
+*   **[Lama Hany](https://github.com/lusgad)** (@lusgad)
+*   **[Abdelrahman Abualhuda](https://github.com/Abdo8751)** (@Abdo8751)
+*   **[Fatma Mohammed Shahen](https://github.com/Fatma-Mohammed-Shahen)** (@Fatma-Mohammed-Shahen)
+*   **[AbdelMonem Sayed](https://github.com/Mon3em20)** (@Mon3em20)
+*   **[Marwan Moamen](https://github.com/mrwnmomen)** (@mrwnmomen)
+*   **[Roba Ahmed](https://github.com/robaahmedd)** (@robaahmedd)
+*   **[Omar Hazem](https://github.com/Omarhazem8)** (@Omarhazem8)
+*   **[Aya Salah](https://github.com/Ayaaasalah)** (@Ayaaasalah)
+*   **[Youssef Abozeid](https://github.com/youssifabozai)** (@youssifabozai)
+*   **[Farida Elbanna](https://github.com/Faridaelbanna)** (@Faridaelbanna)
+*   **[Abdullah Emad](https://github.com/abdallahemad1212)** (@abdallahemad1212)
+*   **[Omar Marmoush](https://github.com/omarmoush)** (@omarmoush)
+*   **[Youssef Moataz](https://github.com/yousefmoatazz)** (@yousefmoatazz)
+
