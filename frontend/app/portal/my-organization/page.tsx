@@ -1,16 +1,18 @@
-'use client';
-
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { organizationStructureService } from '@/app/services/organization-structure';
-
-/**
- * My Organization - Employee Portal
- * REQ-SANV-01: As an Employee, I want to view the organizational hierarchy
- * BR 24: Organizational structure must be viewable as a graphical chart
- * BR 41: Access must be role-based
- */
-
+import {
+  PortalPageHeader,
+  PortalCard,
+  PortalLoading,
+  PortalBadge,
+  PortalButton,
+  PortalInput,
+  PortalErrorState,
+  PortalEmptyState,
+} from '@/components/portal';
+import { Users, Building, Briefcase, ChevronRight, ChevronDown, Search, Maximize2, Minimize2, User, Landmark } from 'lucide-react';
 interface OrgNode {
   _id: string;
   name?: string;
@@ -27,7 +29,6 @@ interface OrgNode {
   children?: OrgNode[];
   isActive: boolean;
 }
-
 export default function MyOrganizationPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -35,18 +36,13 @@ export default function MyOrganizationPage() {
   const [orgData, setOrgData] = useState<OrgNode[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-
   useEffect(() => {
     fetchOrgChart();
   }, []);
-
   const buildOrgTree = (data: any): OrgNode[] => {
-    // Handle case where data has departments and positions
     if (data?.departments || data?.positions) {
       const departments = data.departments || [];
       const positions = data.positions || [];
-
-      // Create a map of departments
       const deptMap = new Map<string, OrgNode>();
       departments.forEach((dept: any) => {
         deptMap.set(dept._id, {
@@ -58,8 +54,6 @@ export default function MyOrganizationPage() {
           children: [],
         });
       });
-
-      // Create a map of positions
       const posMap = new Map<string, OrgNode>();
       positions.forEach((pos: any) => {
         posMap.set(pos._id, {
@@ -73,52 +67,35 @@ export default function MyOrganizationPage() {
           children: [],
         });
       });
-
-      // Build position hierarchy within each department
       positions.forEach((pos: any) => {
         const posNode = posMap.get(pos._id);
         if (!posNode) return;
-
         const parentPosId = pos.reportsToPositionId?._id || pos.reportsToPositionId;
         const deptId = pos.departmentId?._id || pos.departmentId;
-
         if (parentPosId && posMap.has(parentPosId)) {
-          // Position reports to another position
           const parentPos = posMap.get(parentPosId);
           if (parentPos && parentPos.children) {
             parentPos.children.push(posNode);
           }
         } else if (deptId && deptMap.has(deptId)) {
-          // Top-level position in department
           const dept = deptMap.get(deptId);
           if (dept && dept.children) {
             dept.children.push(posNode);
           }
         }
       });
-
-      // Return all departments as root nodes
       return Array.from(deptMap.values());
     }
-
-    // Handle case where data is already an array (if API changes)
-    if (Array.isArray(data)) {
-      return data;
-    }
-
+    if (Array.isArray(data)) return data;
     return [];
   };
-
   const fetchOrgChart = async () => {
     try {
       setLoading(true);
       setError(null);
-
       const res = await organizationStructureService.getOrgChart();
       const treeData = buildOrgTree(res.data || res);
       setOrgData(treeData);
-
-      // Expand first level by default
       if (treeData.length > 0) {
         setExpandedNodes(new Set(treeData.map((n: OrgNode) => n._id)));
       }
@@ -128,19 +105,14 @@ export default function MyOrganizationPage() {
       setLoading(false);
     }
   };
-
   const toggleNode = (nodeId: string) => {
     setExpandedNodes(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(nodeId)) {
-        newSet.delete(nodeId);
-      } else {
-        newSet.add(nodeId);
-      }
+      if (newSet.has(nodeId)) newSet.delete(nodeId);
+      else newSet.add(nodeId);
       return newSet;
     });
   };
-
   const expandAll = () => {
     const allIds = new Set<string>();
     const collectIds = (nodes: OrgNode[]) => {
@@ -152,195 +124,147 @@ export default function MyOrganizationPage() {
     collectIds(orgData);
     setExpandedNodes(allIds);
   };
-
-  const collapseAll = () => {
-    setExpandedNodes(new Set());
-  };
-
+  const collapseAll = () => setExpandedNodes(new Set());
   const renderTreeNode = (node: OrgNode, depth: number = 0) => {
     const isExpanded = expandedNodes.has(node._id);
     const hasChildren = node.children && node.children.length > 0;
     const displayName = node.type === 'department' ? node.name : node.title;
-    // Check if the current user is assigned to this position
-    // Note: user.id is the employeeProfileId from AuthContext
     const isCurrentUser = node.employeeId?._id === user?.id;
-
-    // Search filter
     if (searchQuery) {
+      const q = searchQuery.toLowerCase();
       const matchesSearch =
-        displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        node.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        node.employeeId?.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        node.employeeId?.lastName.toLowerCase().includes(searchQuery.toLowerCase());
-
+        displayName?.toLowerCase().includes(q) ||
+        node.code?.toLowerCase().includes(q) ||
+        node.employeeId?.firstName?.toLowerCase().includes(q) ||
+        node.employeeId?.lastName?.toLowerCase().includes(q);
       const hasMatchingChildren = node.children?.some(child => {
         const childName = child.type === 'department' ? child.name : child.title;
-        return childName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          child.code.toLowerCase().includes(searchQuery.toLowerCase());
+        return childName?.toLowerCase().includes(q) || child.code?.toLowerCase().includes(q);
       });
-
       if (!matchesSearch && !hasMatchingChildren) return null;
     }
-
     return (
-      <div key={node._id} className="select-none">
-        <div
-          className={`flex items-center gap-2 py-2 px-3 rounded-lg transition-colors ${isCurrentUser
-            ? 'bg-primary/10 border border-primary/30'
-            : 'hover:bg-muted/50'
-            }`}
-          style={{ marginLeft: depth * 24 }}
+      <div key={node._id} className="select-none animate-in fade-in slide-in-from-left-2 transition-all">
+        <div 
+          className={`flex items-center gap-3 py-3 px-4 rounded-2xl transition-all mb-1 border group relative ${
+            isCurrentUser 
+              ? 'bg-primary text-primary-foreground border-primary shadow-lg scale-[1.02] z-10' 
+              : 'bg-card border-border hover:border-primary/30 hover:bg-muted/50'
+          }`}
+          style={{ marginLeft: depth * 32 }}
         >
+          {depth > 0 && (
+            <div className="absolute left-[-16px] top-1/2 w-4 h-px bg-border group-hover:bg-primary/30"></div>
+          )}
           {hasChildren ? (
             <button
               onClick={() => toggleNode(node._id)}
-              className="p-1 text-muted-foreground hover:text-foreground rounded"
+              className={`p-1.5 rounded-lg transition-colors ${isCurrentUser ? 'hover:bg-white/20' : 'hover:bg-primary/10 hover:text-primary'} text-muted-foreground`}
             >
-              <svg
-                className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
           ) : (
-            <span className="w-6"></span>
+            <div className="w-7 h-7"></div>
           )}
-
-          <div className={`w-2 h-2 rounded-full ${node.type === 'department'
-            ? 'bg-primary'
-            : node.employeeId ? 'bg-success' : 'bg-warning'
-            }`}></div>
-
-          <div className="flex-1">
+          <div className={`p-2 rounded-xl ${
+            isCurrentUser ? 'bg-white/20' : node.type === 'department' ? 'bg-primary/10 text-primary' : 'bg-accent/10 text-accent-foreground'
+          }`}>
+            {node.type === 'department' ? <Landmark className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
+          </div>
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className={`font-medium ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>
-                {displayName}
-              </span>
-              <span className="text-xs text-muted-foreground font-mono">({node.code})</span>
-              {isCurrentUser && (
-                <span className="text-xs text-primary font-medium border border-primary/20 px-1.5 py-0.5 rounded ml-2">You</span>
+              <p className="font-bold truncate text-sm">{displayName}</p>
+              {isCurrentUser && <PortalBadge variant="info" className="bg-white/20 border-white/20 text-white text-[8px] px-1.5">YOU</PortalBadge>}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5 opacity-60">
+              <span className="text-[10px] font-black uppercase tracking-widest">{node.code}</span>
+              {node.employeeId && (
+                <>
+                  <span className="text-xs">•</span>
+                  <div className="flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    <span className="text-xs font-medium">{node.employeeId.firstName} {node.employeeId.lastName}</span>
+                  </div>
+                </>
               )}
             </div>
-            {node.type === 'position' && (
-              <div className="text-sm text-muted-foreground">
-                {node.employeeId
-                  ? `${node.employeeId.firstName} ${node.employeeId.lastName} (${node.employeeId.employeeNumber})`
-                  : 'Vacant'}
-              </div>
-            )}
           </div>
+          {!node.isActive && <PortalBadge variant="destructive" size="sm">Inactive</PortalBadge>}
         </div>
-
-        {hasChildren && isExpanded && (
-          <div className="border-l-2 border-border ml-3" style={{ marginLeft: depth * 24 + 12 }}>
-            {node.children!.map(child => renderTreeNode(child, depth + 1))}
+        {isExpanded && node.children && (
+          <div className="border-l-2 border-border/30 ml-4 pl-4 py-1">
+            {node.children.map(child => renderTreeNode(child, depth + 1))}
           </div>
         )}
       </div>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="p-6 lg:p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="bg-card rounded-xl border border-border p-6 h-96"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  if (loading) return <PortalLoading message="Building organization map..." fullScreen />;
   return (
-    <div className="p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-semibold text-foreground">Organization Structure</h1>
-          <p className="text-muted-foreground mt-1">View the organizational hierarchy and your position within it</p>
-        </div>
-
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        {/* Toolbar */}
-        <div className="bg-card border border-border rounded-xl p-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search organization..."
+    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <PortalPageHeader
+          title="Organization"
+          description="Global hierarchy mapping and talent structure"
+          breadcrumbs={[{ label: 'Organization' }]}
+          actions={
+            <div className="flex gap-2">
+              <PortalButton variant="outline" size="sm" onClick={expandAll} icon={<Maximize2 className="w-4 h-4" />}>Expand</PortalButton>
+              <PortalButton variant="outline" size="sm" onClick={collapseAll} icon={<Minimize2 className="w-4 h-4" />}>Collapse</PortalButton>
+            </div>
+          }
+        />
+        {error && <PortalErrorState message={error} onRetry={fetchOrgChart} />}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1 space-y-6">
+            <PortalCard className="bg-primary/5 border-primary/20 sticky top-6">
+              <h3 className="font-black text-xs uppercase tracking-widest text-primary mb-4 flex items-center gap-2">
+                <Search className="w-3 h-3" /> Focus Search
+              </h3>
+              <PortalInput 
+                placeholder="Find Dept / Role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary w-64"
+                className="bg-background"
               />
-              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={expandAll}
-                className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
-                Expand All
-              </button>
-              <button
-                onClick={collapseAll}
-                className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
-                Collapse All
-              </button>
-            </div>
+              <div className="mt-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary"><Landmark className="w-3.5 h-3.5" /></div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase opacity-40">Departments</p>
+                    <p className="text-xs font-bold text-foreground leading-tight">Functional business units</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-accent/10 text-accent-foreground"><Briefcase className="w-3.5 h-3.5" /></div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase opacity-40">Positions</p>
+                    <p className="text-xs font-bold text-foreground leading-tight">Specific job mandates</p>
+                  </div>
+                </div>
+              </div>
+            </PortalCard>
           </div>
-
-          {/* Legend */}
-          <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-primary"></div>
-              <span>Department</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-success"></div>
-              <span>Filled Position</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-warning"></div>
-              <span>Vacant Position</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 rounded-full border border-primary/50 bg-primary/10"></div>
-              <span>You</span>
-            </div>
+          <div className="lg:col-span-3">
+            <PortalCard className="min-h-[600px] bg-muted/10">
+              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-border/50">
+                <div className="p-2.5 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+                  <Building className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg">Corporate Blueprint</h2>
+                  <p className="text-xs text-muted-foreground">Interactive talent distribution map</p>
+                </div>
+              </div>
+              {orgData.length > 0 ? (
+                <div className="space-y-4">
+                  {orgData.map(node => renderTreeNode(node))}
+                </div>
+              ) : (
+                <PortalEmptyState icon={<Users className="w-12 h-12 opacity-20" />} title="Blueprint Unavailable" description="The organization chart is currently being updated." />
+              )}
+            </PortalCard>
           </div>
-        </div>
-
-        {/* Organization Tree */}
-        <div className="bg-card border border-border rounded-xl">
-          {orgData.length === 0 ? (
-            <div className="p-12 text-center">
-              <svg className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <h3 className="font-medium text-foreground">Organization Chart Not Available</h3>
-              <p className="text-muted-foreground text-sm mt-1">
-                The organization structure has not been set up yet
-              </p>
-            </div>
-          ) : (
-            <div className="p-6">
-              {orgData.map(node => renderTreeNode(node))}
-            </div>
-          )}
         </div>
       </div>
     </div>

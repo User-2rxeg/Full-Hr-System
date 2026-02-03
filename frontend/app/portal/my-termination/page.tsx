@@ -1,5 +1,4 @@
-'use client';
-
+﻿'use client';
 import { useState, useEffect } from 'react';
 import {
   offboardingService,
@@ -10,19 +9,17 @@ import {
 } from '@/app/services/offboarding';
 import { useAuth } from '@/context/AuthContext';
 import {
-  LucideCheckCircle2,
-  LucideClock,
-  LucideAlertCircle,
-  LucideShield,
-  LucideLayout,
-  LucideChevronRight,
-  LucideCalendar,
-  LucideInfo,
-  LucideArrowRight,
-  LucidePackage,
-  LucideContact2,
-  LucideFileText,
-  LucideTimer
+  PortalPageHeader,
+  PortalCard,
+  PortalStatCard,
+  PortalLoading,
+  PortalBadge,
+  PortalTabs,
+  PortalEmptyState,
+} from '@/components/portal';
+import {
+    CheckCircle, Shield, Layout,
+    Calendar, Info, FileText, ShieldCheck, Box, UserX,
 } from 'lucide-react';
 
 export default function MyTerminationPage() {
@@ -31,309 +28,166 @@ export default function MyTerminationPage() {
   const [termination, setTermination] = useState<TerminationRequest | null>(null);
   const [clearanceChecklist, setClearanceChecklist] = useState<ClearanceChecklist | null>(null);
   const [clearanceStatus, setClearanceStatus] = useState<ClearanceCompletionStatus | null>(null);
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchTerminationStatus();
-    }
-  }, [user?.id]);
-
+  const [activeTab, setActiveTab] = useState('overview');
   const fetchTerminationStatus = async () => {
     try {
       setLoading(true);
       const employeeId = user?.id;
       if (!employeeId) return;
-
       const requests = await offboardingService.getAllTerminationRequests(employeeId);
-
       if (requests && requests.length > 0) {
         const latestTermination = requests[0];
         setTermination(latestTermination);
-
         if (latestTermination.status === TerminationStatus.APPROVED) {
           try {
-            const checklist = await offboardingService.getClearanceChecklistByTerminationId(
-              latestTermination._id
-            );
+            const checklist = await offboardingService.getClearanceChecklistByTerminationId(latestTermination._id);
             setClearanceChecklist(checklist);
-
             const status = await offboardingService.getClearanceCompletionStatus(checklist._id);
             setClearanceStatus(status);
-          } catch (err) {
-            // Checklist not created yet
-          }
+          } catch (err) {}
         }
       }
-    } catch (err) {
-      // Handle silently
-    } finally {
+    } catch (err) {} finally {
       setLoading(false);
     }
   };
-
-  const getStatusConfig = (status: TerminationStatus) => {
-    switch (status) {
-      case TerminationStatus.PENDING:
-        return {
-          icon: LucideClock,
-          color: 'text-warning',
-          bg: 'bg-warning/10',
-          border: 'border-warning/20',
-          description: 'Awaiting initial departmental review.',
-        };
-      case TerminationStatus.UNDER_REVIEW:
-        return {
-          icon: LucideTimer,
-          color: 'text-primary',
-          bg: 'bg-primary/10',
-          border: 'border-primary/20',
-          description: 'HR and Management are coordinating your final paperwork.',
-        };
-      case TerminationStatus.APPROVED:
-        return {
-          icon: LucideCheckCircle2,
-          color: 'text-success',
-          bg: 'bg-success/10',
-          border: 'border-success/20',
-          description: 'Request authorized. Clearance protocols are active.',
-        };
-      case TerminationStatus.REJECTED:
-        return {
-          icon: LucideAlertCircle,
-          color: 'text-destructive',
-          bg: 'bg-destructive/10',
-          border: 'border-destructive/20',
-          description: 'Request declined. Please contact your HR representative.',
-        };
-      default:
-        return {
-          icon: LucideInfo,
-          color: 'text-muted-foreground',
-          bg: 'bg-muted/50',
-          border: 'border-border',
-          description: 'System state: Unknown.',
-        };
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-8 animate-pulse">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <div className="h-12 bg-muted rounded-2xl w-64"></div>
-          <div className="h-96 bg-muted/50 rounded-[48px]"></div>
-          <div className="h-64 bg-muted/50 rounded-[48px]"></div>
-        </div>
-      </div>
-    );
-  }
-
+  useEffect(() => {
+    if (user?.id) fetchTerminationStatus();
+  }, [user?.id]);
+  if (loading) return <PortalLoading message="Decrypting separation vault..." fullScreen />;
   if (!termination) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center text-center p-8 bg-background">
-        <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-8 border border-border">
-          <LucideShield className="w-10 h-10 text-muted-foreground/30" />
-        </div>
-        <h1 className="text-4xl font-black tracking-tight mb-4 text-foreground">Account Status: Active</h1>
-        <p className="text-muted-foreground font-medium max-w-sm mb-10">
-          No pending termination or resignation requests were found for your employee profile.
-        </p>
-        <div className="px-6 py-3 bg-foreground text-background rounded-full text-[10px] font-black uppercase tracking-widest cursor-default">
-          Corporate Secure Identity
-        </div>
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <PortalEmptyState
+           icon={<ShieldCheck className="w-20 h-20 text-success opacity-10" />}
+           title="Active Professional Identity"
+           description="Your employment status is fully active. No pending separation protocols detected."
+           action={{ label: 'Back to Safety', onClick: () => window.location.href = '/portal' }}
+        />
       </div>
     );
   }
-
-  const statusConfig = getStatusConfig(termination.status);
-  const clearanceProgress =
-    clearanceChecklist && clearanceStatus
-      ? Math.round(
-        ((clearanceChecklist.items.filter((i) => i.status === 'approved').length || 0) /
-          (clearanceChecklist.items.length || 1)) *
-        100
-      )
-      : 0;
-
+  const clearanceProgress = clearanceChecklist && clearanceStatus
+    ? Math.round(((clearanceChecklist.items.filter((i: any) => i.status === 'approved').length || 0) / (clearanceChecklist.items.length || 1)) * 100)
+    : 0;
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-10 font-sans text-foreground">
-      <div className="max-w-5xl mx-auto space-y-12">
-
-        {/* Superior Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-foreground text-background text-[10px] font-black uppercase tracking-[0.2em]">
-              <statusConfig.icon className="w-3.5 h-3.5" />
-              Case Status: {termination.status}
-            </div>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-foreground">
-              {termination.initiator === 'employee' ? 'Departure' : 'Separation'}
-            </h1>
-            <p className="text-muted-foreground font-bold uppercase text-xs tracking-widest flex items-center gap-2">
-              Ref Code: T-{termination._id.toUpperCase()}
-              <span className="w-1.5 h-1.5 rounded-full bg-border" />
-              Submitted {new Date(termination.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-
-          <div className="flex flex-col items-end">
-            <div className="text-right">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Effective Last Day</p>
-              <div className="flex items-center gap-3">
-                <LucideCalendar className="w-6 h-6 text-foreground" />
-                <p className="text-3xl font-black tracking-tighter text-foreground">
-                  {termination.terminationDate ? new Date(termination.terminationDate).toLocaleDateString() : 'TBD'}
-                </p>
+    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <PortalPageHeader
+          title="Separation Vault المركز"
+          description="Manage your offboarding, clearance checklist, and final settlement"
+          breadcrumbs={[{ label: 'Separation' }]}
+        />
+        <PortalCard padding="none" className="bg-gradient-to-br from-destructive to-destructive/80 text-white overflow-hidden">
+          <div className="p-8 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+            <div className="space-y-2 text-center lg:text-left">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Employment Termination Status</p>
+              <h2 className="text-5xl md:text-6xl font-black tracking-tighter uppercase">{termination.status}</h2>
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-4">
+                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-xl border border-white/20">
+                    <Calendar className="w-4 h-4 opacity-60" />
+                    <span className="text-xs font-bold">LWD: {termination.terminationDate ? new Date(termination.terminationDate).toLocaleDateString() : 'TBD'}</span>
+                 </div>
+                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-xl border border-white/20">
+                    <Shield className="w-4 h-4 opacity-60" />
+                    <span className="text-xs font-bold uppercase">Ref: T-{termination._id.slice(-6).toUpperCase()}</span>
+                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Global Overview Card */}
-        <div className="bg-card border border-border rounded-[48px] p-10 shadow-2xl shadow-black/[0.02] flex flex-col md:flex-row gap-12">
-          <div className="md:w-1/3 flex flex-col justify-between">
-            <div className="space-y-6">
-              <div className={`p-6 rounded-3xl ${statusConfig.bg} ${statusConfig.border} flex flex-col items-center text-center`}>
-                <statusConfig.icon className={`w-12 h-12 ${statusConfig.color} mb-4`} />
-                <p className={`text-xs font-black uppercase tracking-widest ${statusConfig.color}`}>{termination.status}</p>
-                <p className="text-gray-500 font-medium text-sm mt-3 leading-relaxed">{statusConfig.description}</p>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Case Details</h4>
-                <div className="space-y-2">
-                  <DetailRow label="Primary Reason" value={termination.reason} />
-                  {termination.employeeComments && <DetailRow label="Your Comments" value={termination.employeeComments} />}
-                </div>
-              </div>
+            <div className="w-full max-w-sm p-6 bg-white/10 backdrop-blur-md rounded-[32px] border border-white/20">
+               <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Clearance Progress</span>
+                  <span className="text-sm font-black">{clearanceProgress}%</span>
+               </div>
+               <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden p-0.5 shadow-inner">
+                  <div className="h-full bg-white rounded-full transition-all duration-1000 shadow-[0_0_15px_white]" style={{ width: `${clearanceProgress}%` }}></div>
+               </div>
             </div>
           </div>
-
-          <div className="flex-1 space-y-10">
-            {termination.status === TerminationStatus.APPROVED ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-black tracking-tight">Clearance Checklist</h3>
-                  <div className="px-4 py-1.5 bg-green-50 rounded-full border border-green-100">
-                    <p className="text-[10px] font-black text-green-700 uppercase tracking-widest">{clearanceProgress}% Complete</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="bg-black h-full rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${clearanceProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-[10px] font-black text-gray-400 tracking-[0.2em] uppercase">Security sign-off in progress</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {clearanceChecklist?.items.map((item, idx) => (
-                    <ClearanceItemRow key={idx} item={item} />
-                  ))}
-                  <AssetStatusRow
-                    label="IT Hardware Return"
-                    isComplete={clearanceStatus?.allEquipmentReturned || false}
-                    icon={LucidePackage}
-                  />
-                  <AssetStatusRow
-                    label="Security Badge Return"
-                    isComplete={clearanceStatus?.cardReturned || false}
-                    icon={LucideContact2}
-                  />
-                </div>
-
-                {clearanceStatus?.fullyCleared && (
-                  <div className="p-8 bg-foreground text-background rounded-[32px] flex items-center gap-6 shadow-2xl">
-                    <LucideCheckCircle2 className="w-10 h-10 text-background animate-bounce" />
+        </PortalCard>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <PortalTabs
+               tabs={[
+                 { id: 'overview', label: 'Separation Brief' },
+                 { id: 'checklist', label: 'Clearance Items', badge: clearanceChecklist?.items.length }
+               ]}
+               activeTab={activeTab}
+               onTabChange={setActiveTab}
+            />
+            {activeTab === 'overview' && (
+              <PortalCard className="space-y-8">
+                 <div className="flex items-center gap-3">
+                    <div className="p-3 bg-destructive/10 text-destructive rounded-2xl"><Info className="w-6 h-6" /></div>
                     <div>
-                      <p className="text-lg font-black tracking-tight text-background">Separation Protocols Finalized</p>
-                      <p className="text-background/40 text-sm font-bold uppercase tracking-widest mt-1">Ready for settlement</p>
+                        <h3 className="font-bold text-xl text-foreground">Official Case Note</h3>
+                        <p className="text-sm text-muted-foreground">Detailed reasoning regarding the separation event</p>
                     </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                <LucideFileText className="w-20 h-20 text-gray-50 mb-8" />
-                <h3 className="text-2xl font-black tracking-tight text-gray-200 uppercase">Awaiting Authorization</h3>
-                <p className="text-gray-300 text-sm font-bold uppercase tracking-widest mt-4">Checklist will materialize upon approval.</p>
-              </div>
+                 </div>
+                 <div className="p-6 bg-muted/30 border-l-4 border-destructive rounded-r-2xl italic text-lg opacity-80 leading-relaxed">
+                    "{termination.reason}"
+                 </div>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <PortalCard className="bg-muted/10">
+                        <UserX className="w-5 h-5 text-muted-foreground mb-4" />
+                        <p className="text-[10px] font-black uppercase opacity-40">Initiator</p>
+                        <p className="text-sm font-bold uppercase">{termination.initiator}</p>
+                    </PortalCard>
+                    <PortalCard className="bg-muted/10">
+                        <Box className="w-5 h-5 text-muted-foreground mb-4" />
+                        <p className="text-[10px] font-black uppercase opacity-40">Notice Type</p>
+                        <p className="text-sm font-bold uppercase">Standard Protocol</p>
+                    </PortalCard>
+                 </div>
+              </PortalCard>
+            )}
+            {activeTab === 'checklist' && (
+               <div className="space-y-4">
+                  {clearanceChecklist ? clearanceChecklist.items.map((item: any, idx: number) => (
+                    <PortalCard key={idx} hover padding="none" className="overflow-hidden">
+                       <div className="p-6 flex items-center justify-between gap-6">
+                          <div className="flex items-center gap-4">
+                             <div className={`p-3 rounded-2xl ${item.status === 'approved' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
+                                {item.status === 'approved' ? <CheckCircle className="w-5 h-5" /> : <Box className="w-5 h-5" />}
+                             </div>
+                             <div>
+                                <h4 className={`font-bold transition-colors ${item.status === 'approved' ? 'text-success' : 'text-foreground'}`}>{item.name}</h4>
+                                <p className="text-[10px] font-black uppercase opacity-40">{item.department}</p>
+                             </div>
+                          </div>
+                          <PortalBadge variant={item.status === 'approved' ? 'success' : 'warning'}>{item.status.toUpperCase()}</PortalBadge>
+                       </div>
+                    </PortalCard>
+                  )) : (
+                    <PortalEmptyState
+                      icon={<Layout className="w-16 h-16 opacity-10" />}
+                      title="Waiting for Checklist"
+                      description="Your clearance checklist will be generated once your separation is officially authorized by all stakeholders."
+                    />
+                  )}
+               </div>
             )}
           </div>
-        </div>
-
-        {/* Dynamic HR Feed */}
-        {termination.hrComments && (
-          <div className="bg-card rounded-[48px] p-10 text-card-foreground relative overflow-hidden group border border-border">
-            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
-              <LucideArrowRight className="w-48 h-48 -rotate-45" />
-            </div>
-            <div className="relative z-10 flex flex-col md:flex-row gap-10 items-start md:items-center">
-              <div className="p-6 bg-muted rounded-3xl border border-border shrink-0">
-                <LucideInfo className="w-10 h-10 text-muted-foreground" />
-              </div>
-              <div>
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">Governance Feed / HR Message</h4>
-                <p className="text-2xl font-black tracking-tight text-foreground italic leading-snug">
-                  "{termination.hrComments}"
-                </p>
-              </div>
-            </div>
+          <div className="space-y-6">
+            <PortalCard className="bg-gradient-to-br from-destructive/5 to-primary/5 border-dashed border-2">
+                <h3 className="font-bold mb-4 flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-destructive" /> Critical Protocols</h3>
+                <ul className="space-y-4">
+                  {[
+                    'LWD entitlement is subject to full asset clearance.',
+                    'Identity revocation will occur at 17:00 on your LWD.',
+                    'Final settlement takes 5-7 working days after LWD.'
+                  ].map((text, i) => (
+                    <li key={i} className="flex gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground italic leading-relaxed">"{text}"</p>
+                    </li>
+                  ))}
+                </ul>
+            </PortalCard>
+            <PortalStatCard title="Total Protocols" value={clearanceChecklist?.items.length || 0} icon={<FileText className="w-5 h-5" />} accentColor="muted" />
           </div>
-        )}
-
+        </div>
       </div>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string, value: string }) {
-  return (
-    <div className="space-y-1">
-      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{label}</p>
-      <p className="text-sm font-bold text-foreground leading-relaxed">{value}</p>
-    </div>
-  );
-}
-
-function ClearanceItemRow({ item }: { item: any }) {
-  const isApproved = item.status === 'approved';
-  return (
-    <div className={`p-5 rounded-3xl border transition-all duration-500 flex items-center justify-between group ${isApproved ? 'bg-card border-border' : 'bg-muted/30 border-muted-foreground/20 cursor-not-allowed opacity-60'
-      }`}>
-      <div className="flex items-center gap-4">
-        <div className={`w-1.5 h-1.5 rounded-full ${isApproved ? 'bg-foreground' : 'bg-muted'}`} />
-        <p className={`text-xs font-black uppercase tracking-widest ${isApproved ? 'text-foreground' : 'text-muted-foreground'}`}>
-          {item.department}
-        </p>
-      </div>
-      {isApproved ? (
-        <LucideCheckCircle2 className="w-4 h-4 text-foreground" />
-      ) : (
-        <LucideClock className="w-4 h-4 text-muted" />
-      )}
-    </div>
-  );
-}
-
-function AssetStatusRow({ label, isComplete, icon: Icon }: { label: string, isComplete: boolean, icon: any }) {
-  return (
-    <div className={`p-5 rounded-3xl border transition-all duration-500 flex items-center justify-between group ${isComplete ? 'bg-card border-border shadow-sm' : 'bg-muted/30 border-muted-foreground/20 opacity-60'
-      }`}>
-      <div className="flex items-center gap-4 text-muted-foreground group-hover:text-foreground">
-        <Icon className={`w-5 h-5 ${isComplete ? 'text-foreground' : 'text-muted'}`} />
-        <p className={`text-[10px] font-black uppercase tracking-widest ${isComplete ? 'text-foreground' : 'text-muted-foreground'}`}>
-          {label}
-        </p>
-      </div>
-      {isComplete ? (
-        <LucideCheckCircle2 className="w-4 h-4 text-foreground" />
-      ) : (
-        <div className="w-4 h-4 border-2 border-dashed border-border rounded-full" />
-      )}
     </div>
   );
 }

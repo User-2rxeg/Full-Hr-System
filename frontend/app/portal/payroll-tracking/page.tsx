@@ -8,16 +8,12 @@ import {
   FileText,
   History,
   Receipt,
-  Briefcase,
   Folder,
   AlertCircle,
   TrendingUp,
   TrendingDown,
-  Calendar,
   DollarSign,
   ChevronRight,
-  Download,
-  Eye,
   ShieldCheck,
   CreditCard,
   PieChart,
@@ -30,6 +26,7 @@ import {
   PortalLoading,
   PortalBadge,
   PortalButton,
+  PortalEmptyState,
 } from '@/components/portal';
 
 interface RecentPayslip {
@@ -301,201 +298,6 @@ export default function PortalPayrollTrackingPage() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-            value={stats.lastPayslipDate}
-            subtitle={stats.lastPayslipAmount > 0 ? `EGP ${stats.lastPayslipAmount.toLocaleString()}` : undefined}
-            icon={<Calendar className="h-5 w-5" />}
-            accentColor="accent"
-          />
-          <PortalStatCard
-            title="YTD Earnings"
-            value={`EGP ${stats.ytdEarnings.toLocaleString()}`}
-            icon={<TrendingUp className="h-5 w-5" />}
-            accentColor="accent"
-          />
-          <PortalStatCard
-            title="YTD Deductions"
-            value={`EGP ${stats.ytdDeductions.toLocaleString()}`}
-            icon={<TrendingDown className="h-5 w-5" />}
-            accentColor="destructive"
-          />
-        </div>
-
-        {/* Pending Items Alert */}
-        {(stats.pendingClaims > 0 || stats.pendingDisputes > 0) && (
-          <PortalCard className="bg-warning/5 border-warning/20">
-            <div className="flex items-center gap-4 p-4">
-              <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
-                <AlertCircle className="h-5 w-5 text-warning" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">You have pending items</p>
-                <p className="text-sm text-muted-foreground">
-                  {stats.pendingClaims > 0 && `${stats.pendingClaims} pending claim(s)`}
-                  {stats.pendingClaims > 0 && stats.pendingDisputes > 0 && ' and '}
-                  {stats.pendingDisputes > 0 && `${stats.pendingDisputes} pending dispute(s)`}
-                </p>
-              </div>
-              <Link href="/portal/payroll-tracking/claims-disputes">
-                <PortalButton variant="outline" size="sm">
-                  View Details
-                  <ChevronRight className="h-4 w-4" />
-                </PortalButton>
-              </Link>
-            </div>
-          </PortalCard>
-        )}
-
-        {/* Recent Payslips */}
-        {recentPayslips.length > 0 && (
-          <PortalCard padding="none">
-            <div className="p-6 border-b border-border">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground">Recent Payslips</h2>
-                <Link href="/portal/payroll-tracking/payslips">
-                  <PortalButton variant="ghost" size="sm">
-                    View All
-                    <ChevronRight className="h-4 w-4" />
-                  </PortalButton>
-                </Link>
-              </div>
-            </div>
-            <div className="divide-y divide-border">
-              {recentPayslips.map((payslip) => (
-                <div
-                  key={payslip.id}
-                  className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {new Date(payslip.periodEnd).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Net Pay: {payslip.currency} {payslip.netPay.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <PortalBadge variant="success">{payslip.status}</PortalBadge>
-                    <PortalButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedPayslip(payslip)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </PortalButton>
-                    <PortalButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDownload(payslip.id)}
-                    >
-                      <Download className="h-4 w-4" />
-                    </PortalButton>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </PortalCard>
-        )}
-
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {payrollFeatures.map((feature) => (
-            <Link key={feature.href} href={feature.href}>
-              <PortalCard hover className="h-full group">
-                <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
-                    feature.color === 'primary' ? 'bg-primary/10 text-primary' :
-                    feature.color === 'accent' ? 'bg-accent/10 text-accent-foreground' :
-                    feature.color === 'destructive' ? 'bg-destructive/10 text-destructive' :
-                    feature.color === 'warning' ? 'bg-warning/10 text-warning' :
-                    'bg-muted text-muted-foreground'
-                  }`}>
-                    <feature.Icon className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {feature.description}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                </div>
-              </PortalCard>
-            </Link>
-          ))}
-        </div>
-
-        {/* Quick Help */}
-        <PortalCard className="bg-gradient-to-r from-primary/5 to-accent/5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Need Help?</h3>
-              <p className="text-sm text-muted-foreground">
-                If you have questions about your payroll, contact HR or submit a claim through the Claims & Disputes section.
-              </p>
-            </div>
-          </div>
-        </PortalCard>
-      </div>
-
-      {/* Payslip Quick View Modal */}
-      <PortalModal
-        isOpen={!!selectedPayslip}
-        onClose={() => setSelectedPayslip(null)}
-        title="Payslip Details"
-        description={selectedPayslip ? new Date(selectedPayslip.periodEnd).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
-        size="md"
-        footer={
-          <>
-            <PortalButton variant="outline" onClick={() => setSelectedPayslip(null)}>
-              Close
-            </PortalButton>
-            <PortalButton onClick={() => selectedPayslip && handleDownload(selectedPayslip.id)}>
-              <Download className="h-4 w-4" />
-              Download
-            </PortalButton>
-          </>
-        }
-      >
-        {selectedPayslip && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-muted-foreground">Net Pay</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {selectedPayslip.currency} {selectedPayslip.netPay.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-muted-foreground">Status</p>
-                <div className="mt-1">
-                  <PortalBadge variant="success" size="md">{selectedPayslip.status}</PortalBadge>
-                </div>
-              </div>
-            </div>
-            <div className="pt-4 border-t border-border">
-              <Link href={`/portal/payroll-tracking/payslips`}>
-                <PortalButton variant="outline" className="w-full">
-                  View Full Details
-                  <ChevronRight className="h-4 w-4" />
-                </PortalButton>
-              </Link>
-            </div>
-          </div>
-        )}
-      </PortalModal>
     </div>
   );
 }
